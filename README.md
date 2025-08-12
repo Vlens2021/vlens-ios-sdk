@@ -172,6 +172,6 @@ extension ExampleViewController: VLensDelegate {
 ---
 
 ## Support
-For issues or inquiries, please contact [mohamedt@silverkeytech.com](mailto:mohamedt@silverkeytech.com).
+For issues or inquiries, please contact [mtaher@vlenseg.com](mailto:mtaher@vlenseg.com).
 
 ---
