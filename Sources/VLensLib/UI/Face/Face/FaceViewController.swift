@@ -134,7 +134,7 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
         let transform = faceAnchor.transform
 
         Task { @MainActor in
-            await rendererFrame(blendShapes: blendShapes, transform: transform)
+            rendererFrame(blendShapes: blendShapes, transform: transform)
         }
 
         

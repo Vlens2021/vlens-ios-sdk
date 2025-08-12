@@ -6,8 +6,6 @@
 //
 
 import UIKit
-internal import RxSwift
-internal import RxCocoa
 
 protocol ValidationMainViewControllerDelegate {
     func didBackToPreviousStep() async
@@ -46,7 +44,6 @@ class ValidationMainViewController: UIViewController {
     private var currentChildViewController: UIViewController? = nil
 
     private let viewModel = ValidationMainViewModel()
-    private let disposeBag = DisposeBag()
     
     public init() {
         super.init(nibName: "ValidationMainViewController", bundle: .module)
@@ -142,7 +139,7 @@ class ValidationMainViewController: UIViewController {
     private func postData() {
         Task {
             do {
-                await try viewModel.postData()
+                try await viewModel.postData()
                 if let errorMessage = viewModel.validationErrorMessage {
                     loadingView.isHidden = false
                     loadingImageView.image = UIImage.gifImageWithName("person_error_final")
@@ -175,13 +172,13 @@ class ValidationMainViewController: UIViewController {
     @IBAction func retryButtonAction(_ sender: Any) {
         Task {
             CachedData.shared.noOfRetries = max(CachedData.shared.noOfRetries - 1, 0)
-            await didRetry(stepNumber: viewModel.faceStepIndex)
+            didRetry(stepNumber: viewModel.faceStepIndex)
         }
     }
     
     @IBAction func closeButtonAction(_ sender: Any) {
         Task {
-            await didCancel()
+            didCancel()
         }
     }
 }

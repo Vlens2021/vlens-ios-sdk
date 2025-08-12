@@ -6,8 +6,6 @@
 //
 
 import UIKit
-internal import RxSwift
-internal import RxCocoa
 internal import Alamofire
 import AVFoundation
 import Vision
@@ -79,7 +77,7 @@ class NationalIdFrontViewController: UIViewController {
         Task {
             guard let imageBase64String = image.jpegData(compressionQuality: 1)?.base64EncodedString() else { return }
             do {
-                await try viewModel.postData(imageBase64: imageBase64String)
+                try await viewModel.postData(imageBase64: imageBase64String)
                 CachedData.shared.didGetVerifyFrontResponseSuccessfully = true
             } catch {
                 debugPrint(error)
@@ -130,8 +128,13 @@ extension NationalIdFrontViewController {
             videoOutput.alwaysDiscardsLateVideoFrames = true
             
             Task { @MainActor in
-                captureSession.startRunning()
+                let session = captureSession
+                
+                DispatchQueue.global(qos: .userInitiated).async {
+                    session?.startRunning()
+                }
             }
+            
         } catch {
             print("❌ Error setting up camera input: \(error)")
         }

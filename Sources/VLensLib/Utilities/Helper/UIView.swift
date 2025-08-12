@@ -107,28 +107,28 @@ import UIKit
         return matchingView
     }
     
-    func showSpinner(isWhite: Bool = true, completion: @escaping ((_ viewSpinner: UIView) -> Void)){
-        DispatchQueue.main.async {
-            
-            let spinnerView = UIView.init(frame: self.bounds)
-            let ai = UIActivityIndicatorView.init(style: .whiteLarge)
-            if (isWhite) {
-                spinnerView.backgroundColor = UIColor.init(red: 0, green: 0, blue: 0, alpha: 0.5)
-            } else {
-                ai.color = UIColor.init(red: 0, green: 0, blue: 0, alpha: 0.5)
-            }
-            ai.startAnimating()
-            ai.center = spinnerView.center
-            
-            //DispatchQueue.main.async {
-                spinnerView.addSubview(ai)
-                self.addSubview(spinnerView)
-            //}
-            
-            let viewSpinner = spinnerView
-            completion(viewSpinner)
-        }
-    }
+//    func showSpinner(isWhite: Bool = true, completion: @escaping ((_ viewSpinner: UIView) -> Void)){
+//        DispatchQueue.main.async {
+//            
+//            let spinnerView = UIView.init(frame: self.bounds)
+//            let ai = UIActivityIndicatorView.init(style: .whiteLarge)
+//            if (isWhite) {
+//                spinnerView.backgroundColor = UIColor.init(red: 0, green: 0, blue: 0, alpha: 0.5)
+//            } else {
+//                ai.color = UIColor.init(red: 0, green: 0, blue: 0, alpha: 0.5)
+//            }
+//            ai.startAnimating()
+//            ai.center = spinnerView.center
+//            
+//            //DispatchQueue.main.async {
+//                spinnerView.addSubview(ai)
+//                self.addSubview(spinnerView)
+//            //}
+//            
+//            let viewSpinner = spinnerView
+//            completion(viewSpinner)
+//        }
+//    }
     
     func removeSpinner(viewSpinner: UIView) {
         DispatchQueue.main.async {

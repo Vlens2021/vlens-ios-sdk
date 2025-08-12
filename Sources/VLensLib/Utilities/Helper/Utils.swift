@@ -231,43 +231,31 @@ class Utils{
         let date = dateFormatter.date(from: str!) //according to date format your date string
         return date
     }
-    
-    static func openAppUrl(appId: String, completion: @escaping ((_ success: Bool)->())) {
-        guard let url = URL(string : "itms-apps://itunes.apple.com/app/" + appId) else {
-            completion(false)
-            return
-        }
-        guard #available(iOS 10, *) else {
-            completion(UIApplication.shared.openURL(url))
-            return
-        }
-        UIApplication.shared.open(url, options: [:], completionHandler: completion)
-    }
-    
-    static func getValidationError(statusMassage: String?, errors: [String : [String]?]?) -> String{
-        var result = ""
-        if (errors == nil || errors?.count == 0) {
-            if (statusMassage == nil || statusMassage == "") {
-                return "Failed. Try again"
-            } else {
-                return statusMassage ?? "Failed. Try again"
-            }
-        }
-        
-        for (_, massages) in errors! {
-            for msg in massages ?? [] {
-                if (result != "") {
-                    result += "\n"
-                }
-                result += msg
-            }
-        }
-        
-        if (result == "") {
-            return statusMassage ?? "Failed. Try again"
-        }
-        return result
-    }
+//    
+//    static func getValidationError(statusMassage: String?, errors: [String : [String]?]?) -> String{
+//        var result = ""
+//        if (errors == nil || errors?.count == 0) {
+//            if (statusMassage == nil || statusMassage == "") {
+//                return "Failed. Try again"
+//            } else {
+//                return statusMassage ?? "Failed. Try again"
+//            }
+//        }
+//        
+//        for (_, massages) in errors! {
+//            for msg in massages ?? [] {
+//                if (result != "") {
+//                    result += "\n"
+//                }
+//                result += msg
+//            }
+//        }
+//        
+//        if (result == "") {
+//            return statusMassage ?? "Failed. Try again"
+//        }
+//        return result
+//    }
     
 //    static func generateQRCode(from string: String) -> UIImage? {
 //        let data = string.data(using: String.Encoding.ascii)

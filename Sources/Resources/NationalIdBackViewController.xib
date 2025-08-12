@@ -65,7 +65,7 @@
                                 <userDefinedRuntimeAttribute type="string" keyPath="xibLocKey" value="camera"/>
                             </userDefinedRuntimeAttributes>
                         </label>
-                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="nmf-49-gZX">
+                        <button opaque="NO" alpha="0.0" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="nmf-49-gZX">
                             <rect key="frame" x="333" y="0.0" width="60" height="60"/>
                             <constraints>
                                 <constraint firstAttribute="width" secondItem="nmf-49-gZX" secondAttribute="height" id="GF7-W7-elB"/>

@@ -16,9 +16,7 @@ let package = Package(
             targets: ["VLensLib"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.6.0"),
         .package(url: "https://github.com/Alamofire/Alamofire.git", from: "5.7.0"),
-        .package(url: "https://github.com/AppliedRecognition/ID-Card-Camera.git", branch: "master")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -27,9 +25,6 @@ let package = Package(
             name: "VLensLib",
             dependencies: [
                 "Alamofire",
-                .product(name: "RxSwift", package: "RxSwift"),
-                .product(name: "RxCocoa", package: "RxSwift"),
-                .product(name: "IDCardCamera", package: "id-card-camera")
             ],
             path: "Sources",
             resources: [

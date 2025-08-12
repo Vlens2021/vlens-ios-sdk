@@ -6,8 +6,6 @@
 //
 
 import UIKit
-internal import RxSwift
-internal import RxCocoa
 internal import Alamofire
 import AVFoundation
 import Vision
@@ -116,8 +114,7 @@ class NationalIdBackViewController: UIViewController {
             
             guard let imageBase64String = image.jpegData(compressionQuality: 1)?.base64EncodedString() else { return }
             do {
-                await try viewModel.postData(imageBase64: imageBase64String)
-                let response = CachedData.shared.verifyBackResponse
+                try await viewModel.postData(imageBase64: imageBase64String)
                 if let error = viewModel.errorMessage {
                     loadingStatusImageView.image = UIImage.gifImageWithName("id_error_final")
                     loadingMessageLabel.text = error
@@ -174,8 +171,13 @@ extension NationalIdBackViewController {
             videoOutput.alwaysDiscardsLateVideoFrames = true
             
             Task { @MainActor in
-                captureSession.startRunning()
+                let session = captureSession
+                
+                DispatchQueue.global(qos: .userInitiated).async {
+                    session?.startRunning()
+                }
             }
+            
         } catch {
             print("❌ Error setting up camera input: \(error)")
         }
@@ -257,19 +259,15 @@ extension NationalIdBackViewController: AVCaptureVideoDataOutputSampleBufferDele
     nonisolated func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         
-        do {
-            // Perform image conversion on background thread
-            let ciImage = CIImage(cvPixelBuffer: imageBuffer)
-            let context = CIContext()
-            
-            guard let cgImage = try? context.createCGImage(ciImage, from: ciImage.extent) else { return }
-            
-            // Now pass CGImage to the main actor for UI-related detection
-            Task { @MainActor in
-                self.detectRectangle(in: cgImage)
-            }
-        } catch {
-            debugPrint(error)
+        // Perform image conversion on background thread
+        let ciImage = CIImage(cvPixelBuffer: imageBuffer)
+        let context = CIContext()
+        
+        guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else { return }
+
+        // Now pass CGImage to the main actor for UI-related detection
+        Task { @MainActor in
+            self.detectRectangle(in: cgImage)
         }
     }
 }
