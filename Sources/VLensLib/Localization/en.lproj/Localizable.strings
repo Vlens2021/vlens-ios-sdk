@@ -1,0 +1,46 @@
+/* 
+  Localizable.strings
+  VLensLib
+
+  Created by Mohamed Taher on 11/08/2025.
+  
+*/
+
+"camera_permission_msg" = "Camera permission is required to use this feature.";
+"align_id_front_side_msg" = "Place Front Id inside the rectangle";
+"align_id_back_side_msg" = "Place Back Id inside the rectangle";
+"uploading_msg" = "Uploading...";
+"success" = "Success";
+"error" = "An error occurred while processing your request. Please try again later";
+"faild_to_capture_image" = "Failed to capture image.";
+"back_image_captured" = "Back image captured.";
+"front_image_captured" = "Front image captured.";
+"internet_connection_error" = "Internet connection error.";
+"no_camera_device_found" = "No camera device found.";
+"div_failed" = "Digital Identity verification failed.";
+"div_success" = "Digital Identity verification success.";
+"Smile" = "Show us your best smile!";
+"Blinking" = "Give us a quick blink!";
+"Turned Right" = "Turn your face a bit to the right";
+"Turned Left" = "Turn your face a bit to the left";
+"Looking Straight" = "Look directly into the camera.";
+"verifying_your_identity" = "Verifying your identity...";
+"processing_facial_recognition" = "Processing facial recognition... Hold still!";
+"powered_by" = "Powered By ";
+"camera" = "Camera";
+"scanning_your_id" = "Scanning your ID";
+"processing_your_id" = "Processing your ID... This may take a moment.";
+"lets_verify_your_face" = "Let’s Verify Your Face 👨🏽";
+"face_instructions" = "You’ll be asked to do a random 3 out of these 5 fun movements";
+"tip_title" = "ⓘ A Few Tips for Success:";
+"face_tip_1" = "Keep your camera steady to make sure the pictures come out sharp.";
+"start_scanning" = "Start Scanning";
+"scanning_your_id_title" = "Scan Your ID 🪪";
+"national_id_instructions" = "To get started, we need to verify your identity. Please take a clear photo of both the front and back of your ID.";
+"national_id_tip_1" = "Make sure you’re in a well-lit area so your ID and face are clearly visible.";
+"national_id_tip_2" = "Make sure it's easy to read!";
+"scan_id" = "Scan ID";
+"id_flip_msg" = "Please flip your ID";
+"retry_scanning" = "Retry scanning";
+"retry" = "Retry";
+"close" = "Close";

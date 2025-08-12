@@ -1,0 +1,33 @@
+{
+  "originHash" : "132e4fcf7842586af6fb54683035430d28a0db3a18852ef2ec3a1f777c81e7cb",
+  "pins" : [
+    {
+      "identity" : "alamofire",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Alamofire/Alamofire.git",
+      "state" : {
+        "revision" : "513364f870f6bfc468f9d2ff0a95caccc10044c5",
+        "version" : "5.10.2"
+      }
+    },
+    {
+      "identity" : "id-card-camera",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/AppliedRecognition/ID-Card-Camera.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "0db686702a5ed728cd236efb40bc1c3f9ed8fcfd"
+      }
+    },
+    {
+      "identity" : "rxswift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ReactiveX/RxSwift.git",
+      "state" : {
+        "revision" : "5dd1907d64f0d36f158f61a466bab75067224893",
+        "version" : "6.9.0"
+      }
+    }
+  ],
+  "version" : 3
+}
