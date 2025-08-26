@@ -292,13 +292,13 @@ class Utils{
         
         // Convert Base64 to Data
         guard let imageData = Data(base64Encoded: base64String) else {
-            print("Invalid Base64 string")
+            debugPrint("Invalid Base64 string")
             return nil
         }
         
         // Convert Data to UIImage
         guard let image = UIImage(data: imageData) else {
-            print("Invalid Image Data")
+            debugPrint("Invalid Image Data")
             return nil
         }
         
@@ -312,7 +312,7 @@ class Utils{
         }
         
         guard let finalData = compressedData else {
-            print("Compression failed")
+            debugPrint("Compression failed")
             return nil
         }
         

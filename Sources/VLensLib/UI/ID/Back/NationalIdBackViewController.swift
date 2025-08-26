@@ -142,7 +142,7 @@ extension NationalIdBackViewController {
         captureSession.sessionPreset = .photo
 
         guard let backCamera = AVCaptureDevice.default(for: .video) else {
-            print("❌ Unable to access back camera")
+            debugPrint("❌ Unable to access back camera")
             return
         }
 
@@ -179,7 +179,7 @@ extension NationalIdBackViewController {
             }
             
         } catch {
-            print("❌ Error setting up camera input: \(error)")
+            debugPrint("❌ Error setting up camera input: \(error)")
         }
     }
     
@@ -241,11 +241,11 @@ extension NationalIdBackViewController: AVCapturePhotoCaptureDelegate {
                      error: Error?) {
         guard let imageData = photo.fileDataRepresentation(),
               let image = UIImage(data: imageData) else {
-            print("❌ Failed to get image from photo capture")
+            debugPrint("❌ Failed to get image from photo capture")
             return
         }
 
-        print("✅ Photo captured")
+        debugPrint("✅ Photo captured")
         
         Task { @MainActor in
             didCaptureImage(image)

@@ -98,7 +98,7 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
     func playSound() {
         let fileName = ((CachedData.shared.language == "en") ? viewModel?.getSoundFileName() : viewModel?.getSoundFileNameAr()) ?? "smile"
         guard let url = Bundle.module.url(forResource: fileName, withExtension: "mp3") else {
-            print("\(fileName) MP3 file not found")
+            debugPrint("\(fileName) MP3 file not found")
             return
         }
 
@@ -107,14 +107,14 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
             audioPlayer?.prepareToPlay()
             audioPlayer?.play()
         } catch {
-            print("Error playing audio: \(error.localizedDescription)")
+            debugPrint("Error playing audio: \(error.localizedDescription)")
         }
     }
     
     func playSuccessSound() {
         let fileName = "success"
         guard let url = Bundle.module.url(forResource: fileName, withExtension: "mp3") else {
-            print("\(fileName) MP3 file not found")
+            debugPrint("\(fileName) MP3 file not found")
             return
         }
 
@@ -123,7 +123,7 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
             audioPlayer?.prepareToPlay()
             audioPlayer?.play()
         } catch {
-            print("Error playing audio: \(error.localizedDescription)")
+            debugPrint("Error playing audio: \(error.localizedDescription)")
         }
     }
     
