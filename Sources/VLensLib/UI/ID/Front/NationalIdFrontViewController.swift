@@ -26,7 +26,7 @@ class NationalIdFrontViewController: UIViewController {
     private var previewLayer: AVCaptureVideoPreviewLayer!
     
     private let videoOutput = AVCaptureVideoDataOutput()
-    private var isCapturing = true
+    private var isProcessing = true
     
     var viewModel = NationalIdFrontViewModel()
     var delegate: ValidationMainViewControllerDelegate? = nil
@@ -50,7 +50,7 @@ class NationalIdFrontViewController: UIViewController {
         super.viewDidAppear(animated)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-            self.isCapturing = false
+            self.isProcessing = false
         }
         
     }
@@ -142,16 +142,17 @@ extension NationalIdFrontViewController {
     
     @MainActor
     func detectRectangle(in image: CGImage) {
-        guard isCapturing == false else { return }
+        guard isProcessing == false else { return }
+        isProcessing = true
         
         let request = VNDetectRectanglesRequest { [weak self] request, error in
             guard let self = self else { return }
 
             if let results = request.results as? [VNRectangleObservation],
-               let _ = results.first,
-               !self.isCapturing {
-                self.isCapturing = true
+               let _ = results.first{
                 self.capturePhoto()
+            } else {
+                isProcessing = false
             }
         }
 
@@ -163,6 +164,30 @@ extension NationalIdFrontViewController {
 
         Task { @MainActor in
             try? handler.perform([request])
+        }
+    }
+    
+    @MainActor
+    func detectFace(in image: CGImage) {
+        guard isProcessing == false else { return }
+        isProcessing = true
+        
+        let detector = FaceDetector()
+
+        Task {
+            do {
+                let hasFace = try await detector.detectFace(in: image)
+                if hasFace {
+                    //debugPrint("✅ Face detected")
+                    try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+                    self.capturePhoto()
+                } else {
+                    self.isProcessing = false
+                   // print("❌ No face detected")
+                }
+            } catch {
+                print("Face detection failed:", error)
+            }
         }
     }
     
@@ -224,7 +249,8 @@ extension NationalIdFrontViewController: AVCaptureVideoDataOutputSampleBufferDel
 
         // Now pass CGImage to the main actor for UI-related detection
         Task { @MainActor in
-            self.detectRectangle(in: cgImage)
+//            self.detectRectangle(in: cgImage)
+            self.detectFace(in: cgImage)
         }
     }
 }
