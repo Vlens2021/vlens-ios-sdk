@@ -34,7 +34,7 @@ class NationalIdBackViewController: UIViewController {
     private var previewLayer: AVCaptureVideoPreviewLayer!
     
     private let videoOutput = AVCaptureVideoDataOutput()
-    private var isCapturing = true
+    private var isProcessing = true
     
     var viewModel = NationalIdBackViewModel()
     var delegate: ValidationMainViewControllerDelegate? = nil
@@ -69,8 +69,8 @@ class NationalIdBackViewController: UIViewController {
             self.cardPreviewImageView.isHidden = false
         }
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 6.0) {
-            self.isCapturing = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+            self.isProcessing = false
         }
         
     }
@@ -185,16 +185,16 @@ extension NationalIdBackViewController {
     
     @MainActor
     func detectRectangle(in image: CGImage) {
-        guard isCapturing == false else { return }
+        guard isProcessing == false else { return }
         
         let request = VNDetectRectanglesRequest { [weak self] request, error in
             guard let self = self else { return }
 
             if let results = request.results as? [VNRectangleObservation],
-               let _ = results.first,
-               !self.isCapturing {
-                self.isCapturing = true
+               let _ = results.first {
                 self.capturePhoto()
+            } else {
+                self.isProcessing = false
             }
         }
 
@@ -206,6 +206,30 @@ extension NationalIdBackViewController {
 
         Task { @MainActor in
             try? handler.perform([request])
+        }
+    }
+    
+    @MainActor
+    func detectPdf417(in image: CGImage) {
+        guard isProcessing == false else { return }
+        isProcessing = true
+        
+        let detector = PDF417Detector()
+
+        Task {
+            do {
+                let hasFace = try await detector.detectPDF417(in: image)
+                if hasFace {
+                    //debugPrint("✅ Face detected")
+                    try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+                    self.capturePhoto()
+                } else {
+                    self.isProcessing = false
+                   // print("❌ No face detected")
+                }
+            } catch {
+                print("Face detection failed:", error)
+            }
         }
     }
     
@@ -267,7 +291,7 @@ extension NationalIdBackViewController: AVCaptureVideoDataOutputSampleBufferDele
 
         // Now pass CGImage to the main actor for UI-related detection
         Task { @MainActor in
-            self.detectRectangle(in: cgImage)
+            self.detectPdf417(in: cgImage)
         }
     }
 }
