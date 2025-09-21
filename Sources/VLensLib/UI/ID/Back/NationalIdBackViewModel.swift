@@ -43,13 +43,50 @@ class NationalIdBackViewModel {
         .value
         
         CachedData.shared.verifyBackResponse = response
-        if let errorMessage = response.errorMessage {
+//        if let errorMessage = response.errorMessage {
+//            self.errorMessage = errorMessage
+//        }
+//        
+//        let validationErrors = response.services?.validations?.validationErrors ?? []
+//        if !validationErrors.isEmpty {
+//            self.errorMessage = validationErrors.first?.errors?.first?.message  ?? "error".localized
+//        }
+        
+        checkIfErrorExists()
+    }
+    
+    @MainActor
+    private func checkIfErrorExists() {
+        // check if error exists in front response
+        guard let frontResponse = CachedData.shared.verifyBackResponse else {
+            self.errorMessage = "error".localized
+            return
+        }
+        if let errorMessage = frontResponse.errorMessage {
             self.errorMessage = errorMessage
+            return
         }
         
-        let validationErrors = response.services?.validations?.validationErrors ?? []
-        if !validationErrors.isEmpty {
-            self.errorMessage = validationErrors.first?.errors?.first?.message  ?? "error".localized
+        let fValidationErrors = frontResponse.services?.validations?.validationErrors ?? []
+        if !fValidationErrors.isEmpty {
+            self.errorMessage = fValidationErrors.first?.errors?.first?.message  ?? "error".localized
+            return
+        }
+        
+        // check if error exists in back response
+        guard let backResponse = CachedData.shared.verifyBackResponse else {
+            self.errorMessage = "error".localized
+            return
+        }
+        if let errorMessage = backResponse.errorMessage {
+            self.errorMessage = errorMessage
+            return
+        }
+        
+        let bValidationErrors = backResponse.services?.validations?.validationErrors ?? []
+        if !bValidationErrors.isEmpty {
+            self.errorMessage = bValidationErrors.first?.errors?.first?.message  ?? "error".localized
+            return
         }
     }
     
