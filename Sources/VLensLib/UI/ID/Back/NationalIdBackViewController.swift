@@ -26,12 +26,17 @@ class NationalIdBackViewController: UIViewController {
     @IBOutlet weak var loadingStatusImageView: UIImageView!
     @IBOutlet weak var loadingMessageLabel: UILabel!
     
+    @IBOutlet weak var captureButtonView: UIView!
+    @IBOutlet weak var captureButton: UIButton!
+    
     @IBOutlet weak var actionsView: UIStackView!
     @IBOutlet weak var retryButton: UIButton!
     
     private var captureSession: AVCaptureSession!
     private var photoOutput: AVCapturePhotoOutput!
     private var previewLayer: AVCaptureVideoPreviewLayer!
+    
+    private var isAutoCapturing: Bool = true
     
     private let videoOutput = AVCaptureVideoDataOutput()
     private var isProcessing = true
@@ -57,6 +62,14 @@ class NationalIdBackViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
+        isAutoCapturing = CachedData.shared.allowAutoCapture
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 7) {
+            self.isAutoCapturing = false
+            self.captureButtonView.isHidden = false
+        }
+        
+        captureButtonView.isHidden = true
         loadingView.isHidden = true
         actionsView.isHidden = true
         loadingMessageLabel.text = "processing_your_id".localized
@@ -67,9 +80,10 @@ class NationalIdBackViewController: UIViewController {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             self.flipCardImageView.isHidden = true
             self.cardPreviewImageView.isHidden = false
+            self.captureButtonView.isHidden = self.isAutoCapturing
         }
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
             self.isProcessing = false
         }
         
@@ -106,6 +120,9 @@ class NationalIdBackViewController: UIViewController {
         }
     }
     
+    @IBAction func captureButtonAction(_ sender: Any) {
+        capturePhoto()
+    }
     
     private func didCaptureImage(_ image: UIImage) {
         Task {
@@ -180,32 +197,6 @@ extension NationalIdBackViewController {
             
         } catch {
             debugPrint("❌ Error setting up camera input: \(error)")
-        }
-    }
-    
-    @MainActor
-    func detectRectangle(in image: CGImage) {
-        guard isProcessing == false else { return }
-        
-        let request = VNDetectRectanglesRequest { [weak self] request, error in
-            guard let self = self else { return }
-
-            if let results = request.results as? [VNRectangleObservation],
-               let _ = results.first {
-                self.capturePhoto()
-            } else {
-                self.isProcessing = false
-            }
-        }
-
-        request.minimumConfidence = 0.8
-        request.minimumAspectRatio = 0.3
-        request.maximumObservations = 1
-
-        let handler = VNImageRequestHandler(cgImage: image, orientation: .right, options: [:])
-
-        Task { @MainActor in
-            try? handler.perform([request])
         }
     }
     
@@ -291,7 +282,9 @@ extension NationalIdBackViewController: AVCaptureVideoDataOutputSampleBufferDele
 
         // Now pass CGImage to the main actor for UI-related detection
         Task { @MainActor in
-            self.detectPdf417(in: cgImage)
+            if (isAutoCapturing == true) {
+                self.detectPdf417(in: cgImage)
+            }
         }
     }
 }

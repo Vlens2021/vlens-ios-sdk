@@ -12,13 +12,14 @@ class CachedData {
     private init() {}  
     
     // MARK: - Entry Point Properties
-    var apiBaseUrl  : String   = "https://api.vlenseg.com"
-    var apiKey      : String   = ""
-    var secretKey   : String   = ""
-    var tenancyName : String   = ""
-    var accessToken : String   = ""
-    var language    : String   = "en"
-    var noOfRetries : Int      = 5
+    var apiBaseUrl       : String   = "https://api.vlenseg.com"
+    var apiKey           : String   = ""
+    var secretKey        : String   = ""
+    var tenancyName      : String   = ""
+    var accessToken      : String   = ""
+    var language         : String   = "en"
+    var noOfRetries      : Int      = 5
+    var allowAutoCapture : Bool     = false
     
     // MARK: - Transaction Properties
     var transactionId = ""
