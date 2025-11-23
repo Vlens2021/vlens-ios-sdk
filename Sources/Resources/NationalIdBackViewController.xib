@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="24127" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23721"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24063"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -13,6 +13,8 @@
             <connections>
                 <outlet property="actionsView" destination="V6r-Zs-rQT" id="baq-TL-OiE"/>
                 <outlet property="cameraPreviewView" destination="0xr-pw-WOj" id="EQ3-7J-KfR"/>
+                <outlet property="captureButton" destination="Ytk-KY-hvV" id="oIo-4P-XPb"/>
+                <outlet property="captureButtonView" destination="vtG-tp-RlF" id="iDq-HV-Bwm"/>
                 <outlet property="cardOverlayView" destination="Pqr-AQ-hq8" id="9S0-0K-GL6"/>
                 <outlet property="cardPreviewImageView" destination="Pqr-AQ-hq8" id="3Hf-EH-F2L"/>
                 <outlet property="flipCardImageView" destination="dMN-Z0-cvH" id="EZR-u7-Hu5"/>
@@ -102,7 +104,7 @@
                     </constraints>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="d5l-eN-1mf">
-                    <rect key="frame" x="50" y="672" width="293" height="60"/>
+                    <rect key="frame" x="50" y="612" width="293" height="60"/>
                     <subviews>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Place Back Id inside the rectangle" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="5j3-FC-5VH">
                             <rect key="frame" x="30" y="10" width="233" height="40"/>
@@ -129,10 +131,61 @@
                     </userDefinedRuntimeAttributes>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="VAV-lk-y3E">
-                    <rect key="frame" x="0.0" y="752" width="393" height="100"/>
+                    <rect key="frame" x="0.0" y="692" width="393" height="160"/>
+                    <subviews>
+                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="vtG-tp-RlF">
+                            <rect key="frame" x="166.66666666666666" y="20" width="60" height="60"/>
+                            <subviews>
+                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Pnr-DN-70j">
+                                    <rect key="frame" x="5" y="5" width="50" height="50"/>
+                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                    <constraints>
+                                        <constraint firstAttribute="width" secondItem="Pnr-DN-70j" secondAttribute="height" id="6zg-by-85m"/>
+                                    </constraints>
+                                    <userDefinedRuntimeAttributes>
+                                        <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
+                                            <real key="value" value="25"/>
+                                        </userDefinedRuntimeAttribute>
+                                    </userDefinedRuntimeAttributes>
+                                </view>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ytk-KY-hvV">
+                                    <rect key="frame" x="0.0" y="0.0" width="60" height="60"/>
+                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                    <connections>
+                                        <action selector="captureButtonAction:" destination="-1" eventType="touchUpInside" id="ox7-Yt-qrn"/>
+                                    </connections>
+                                </button>
+                            </subviews>
+                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <constraints>
+                                <constraint firstItem="Pnr-DN-70j" firstAttribute="top" secondItem="vtG-tp-RlF" secondAttribute="top" constant="5" id="B4W-B4-3IM"/>
+                                <constraint firstAttribute="width" secondItem="vtG-tp-RlF" secondAttribute="height" multiplier="1:1" id="D9d-rb-m6m"/>
+                                <constraint firstItem="Ytk-KY-hvV" firstAttribute="leading" secondItem="vtG-tp-RlF" secondAttribute="leading" id="SW2-iE-CGD"/>
+                                <constraint firstAttribute="bottom" secondItem="Ytk-KY-hvV" secondAttribute="bottom" id="TDq-fj-gi7"/>
+                                <constraint firstItem="Pnr-DN-70j" firstAttribute="centerX" secondItem="vtG-tp-RlF" secondAttribute="centerX" id="VW1-nY-t1C"/>
+                                <constraint firstAttribute="trailing" secondItem="Ytk-KY-hvV" secondAttribute="trailing" id="YKb-ap-ieE"/>
+                                <constraint firstItem="Pnr-DN-70j" firstAttribute="centerY" secondItem="vtG-tp-RlF" secondAttribute="centerY" id="ruv-hg-1bI"/>
+                                <constraint firstItem="Ytk-KY-hvV" firstAttribute="top" secondItem="vtG-tp-RlF" secondAttribute="top" id="u5r-n9-4RD"/>
+                                <constraint firstAttribute="width" constant="60" id="y8O-Vc-jFQ"/>
+                            </constraints>
+                            <userDefinedRuntimeAttributes>
+                                <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
+                                    <real key="value" value="30"/>
+                                </userDefinedRuntimeAttribute>
+                                <userDefinedRuntimeAttribute type="number" keyPath="borderWidth">
+                                    <real key="value" value="1"/>
+                                </userDefinedRuntimeAttribute>
+                                <userDefinedRuntimeAttribute type="color" keyPath="borderColor">
+                                    <color key="value" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </userDefinedRuntimeAttribute>
+                            </userDefinedRuntimeAttributes>
+                        </view>
+                    </subviews>
                     <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     <constraints>
-                        <constraint firstAttribute="height" constant="100" id="74G-7H-VTW"/>
+                        <constraint firstAttribute="height" constant="160" id="74G-7H-VTW"/>
+                        <constraint firstItem="vtG-tp-RlF" firstAttribute="centerX" secondItem="VAV-lk-y3E" secondAttribute="centerX" id="Fmq-LQ-WAi"/>
+                        <constraint firstItem="vtG-tp-RlF" firstAttribute="top" secondItem="VAV-lk-y3E" secondAttribute="top" constant="20" id="dKd-fg-0QH"/>
                     </constraints>
                 </view>
                 <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="MYV-q2-SZE">

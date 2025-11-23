@@ -21,12 +21,17 @@ class NationalIdFrontViewController: UIViewController {
     @IBOutlet weak var cardOverlayView: UIView!
     @IBOutlet weak var previewImageView: UIImageView!
     
+    @IBOutlet weak var captureButtonView: UIView!
+    @IBOutlet weak var captureButton: UIButton!
+    
     private var captureSession: AVCaptureSession!
     private var photoOutput: AVCapturePhotoOutput!
     private var previewLayer: AVCaptureVideoPreviewLayer!
     
     private let videoOutput = AVCaptureVideoDataOutput()
     private var isProcessing = true
+    
+    private var isAutoCapturing: Bool = true
     
     var viewModel = NationalIdFrontViewModel()
     var delegate: ValidationMainViewControllerDelegate? = nil
@@ -49,7 +54,15 @@ class NationalIdFrontViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+        isAutoCapturing = CachedData.shared.allowAutoCapture
+        captureButtonView.isHidden = isAutoCapturing
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 7) {
+            self.isAutoCapturing = false
+            self.captureButtonView.isHidden = false
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
             self.isProcessing = false
         }
         
@@ -71,6 +84,10 @@ class NationalIdFrontViewController: UIViewController {
         Task {
             
         }
+    }
+    
+    @IBAction func captureButtonAction(_ sender: Any) {
+        capturePhoto()
     }
     
     private func didCaptureImage(_ image: UIImage) {
@@ -140,32 +157,32 @@ extension NationalIdFrontViewController {
         }
     }
     
-    @MainActor
-    func detectRectangle(in image: CGImage) {
-        guard isProcessing == false else { return }
-        isProcessing = true
-        
-        let request = VNDetectRectanglesRequest { [weak self] request, error in
-            guard let self = self else { return }
-
-            if let results = request.results as? [VNRectangleObservation],
-               let _ = results.first{
-                self.capturePhoto()
-            } else {
-                isProcessing = false
-            }
-        }
-
-        request.minimumConfidence = 0.8
-        request.minimumAspectRatio = 0.3
-        request.maximumObservations = 1
-
-        let handler = VNImageRequestHandler(cgImage: image, orientation: .right, options: [:])
-
-        Task { @MainActor in
-            try? handler.perform([request])
-        }
-    }
+//    @MainActor
+//    func detectRectangle(in image: CGImage) {
+//        guard isProcessing == false else { return }
+//        isProcessing = true
+//        
+//        let request = VNDetectRectanglesRequest { [weak self] request, error in
+//            guard let self = self else { return }
+//
+//            if let results = request.results as? [VNRectangleObservation],
+//               let _ = results.first{
+//                self.capturePhoto()
+//            } else {
+//                isProcessing = false
+//            }
+//        }
+//
+//        request.minimumConfidence = 0.8
+//        request.minimumAspectRatio = 0.3
+//        request.maximumObservations = 1
+//
+//        let handler = VNImageRequestHandler(cgImage: image, orientation: .right, options: [:])
+//
+//        Task { @MainActor in
+//            try? handler.perform([request])
+//        }
+//    }
     
     @MainActor
     func detectFace(in image: CGImage) {
@@ -250,7 +267,9 @@ extension NationalIdFrontViewController: AVCaptureVideoDataOutputSampleBufferDel
         // Now pass CGImage to the main actor for UI-related detection
         Task { @MainActor in
 //            self.detectRectangle(in: cgImage)
-            self.detectFace(in: cgImage)
+            if (isAutoCapturing == true) {
+                self.detectFace(in: cgImage)
+            }
         }
     }
 }

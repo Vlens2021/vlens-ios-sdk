@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="24127" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23721"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24063"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -12,6 +12,8 @@
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="NationalIdFrontViewController" customModuleProvider="target">
             <connections>
                 <outlet property="cameraPreviewView" destination="dWO-Uk-bSF" id="KK4-vB-SeN"/>
+                <outlet property="captureButton" destination="Jrw-Qe-CBm" id="aHX-JT-rUg"/>
+                <outlet property="captureButtonView" destination="a6T-s5-qRr" id="56i-6a-vc1"/>
                 <outlet property="cardOverlayView" destination="Rb5-gR-wCU" id="XTg-AF-mdn"/>
                 <outlet property="previewImageView" destination="9Kx-tY-XHG" id="CvH-9m-6Sz"/>
                 <outlet property="view" destination="GhP-ye-ijv" id="cVw-kO-FYO"/>
@@ -89,7 +91,7 @@
                     <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="pvt-d0-ed5">
-                    <rect key="frame" x="50" y="672" width="293" height="60"/>
+                    <rect key="frame" x="50" y="612" width="293" height="60"/>
                     <subviews>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Place Front Id inside the rectangle" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Ch9-IE-g3w">
                             <rect key="frame" x="30" y="10" width="233" height="40"/>
@@ -116,10 +118,61 @@
                     </userDefinedRuntimeAttributes>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Ax0-F0-aE7">
-                    <rect key="frame" x="0.0" y="752" width="393" height="100"/>
+                    <rect key="frame" x="0.0" y="692" width="393" height="160"/>
+                    <subviews>
+                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="a6T-s5-qRr">
+                            <rect key="frame" x="166.66666666666666" y="20" width="60" height="60"/>
+                            <subviews>
+                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Bap-k3-1Ww">
+                                    <rect key="frame" x="5" y="5" width="50" height="50"/>
+                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                    <constraints>
+                                        <constraint firstAttribute="width" secondItem="Bap-k3-1Ww" secondAttribute="height" id="1Ph-gr-Zwe"/>
+                                    </constraints>
+                                    <userDefinedRuntimeAttributes>
+                                        <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
+                                            <real key="value" value="25"/>
+                                        </userDefinedRuntimeAttribute>
+                                    </userDefinedRuntimeAttributes>
+                                </view>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Jrw-Qe-CBm">
+                                    <rect key="frame" x="0.0" y="0.0" width="60" height="60"/>
+                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                    <connections>
+                                        <action selector="captureButtonAction:" destination="-1" eventType="touchUpInside" id="dTh-YN-PVM"/>
+                                    </connections>
+                                </button>
+                            </subviews>
+                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <constraints>
+                                <constraint firstItem="Jrw-Qe-CBm" firstAttribute="top" secondItem="a6T-s5-qRr" secondAttribute="top" id="GSi-PJ-e01"/>
+                                <constraint firstItem="Bap-k3-1Ww" firstAttribute="centerY" secondItem="a6T-s5-qRr" secondAttribute="centerY" id="QF3-wI-FAt"/>
+                                <constraint firstAttribute="bottom" secondItem="Jrw-Qe-CBm" secondAttribute="bottom" id="b7B-05-8TY"/>
+                                <constraint firstAttribute="trailing" secondItem="Jrw-Qe-CBm" secondAttribute="trailing" id="bUH-nm-JVf"/>
+                                <constraint firstItem="Bap-k3-1Ww" firstAttribute="top" secondItem="a6T-s5-qRr" secondAttribute="top" constant="5" id="f0m-LV-hAw"/>
+                                <constraint firstAttribute="width" constant="60" id="gAa-PE-vXs"/>
+                                <constraint firstItem="Bap-k3-1Ww" firstAttribute="centerX" secondItem="a6T-s5-qRr" secondAttribute="centerX" id="jZ6-7f-56X"/>
+                                <constraint firstAttribute="width" secondItem="a6T-s5-qRr" secondAttribute="height" multiplier="1:1" id="mVJ-cP-9GL"/>
+                                <constraint firstItem="Jrw-Qe-CBm" firstAttribute="leading" secondItem="a6T-s5-qRr" secondAttribute="leading" id="uhC-qu-mgD"/>
+                            </constraints>
+                            <userDefinedRuntimeAttributes>
+                                <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
+                                    <real key="value" value="30"/>
+                                </userDefinedRuntimeAttribute>
+                                <userDefinedRuntimeAttribute type="number" keyPath="borderWidth">
+                                    <real key="value" value="1"/>
+                                </userDefinedRuntimeAttribute>
+                                <userDefinedRuntimeAttribute type="color" keyPath="borderColor">
+                                    <color key="value" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </userDefinedRuntimeAttribute>
+                            </userDefinedRuntimeAttributes>
+                        </view>
+                    </subviews>
                     <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     <constraints>
-                        <constraint firstAttribute="height" constant="100" id="YS4-fn-Wia"/>
+                        <constraint firstItem="a6T-s5-qRr" firstAttribute="centerX" secondItem="Ax0-F0-aE7" secondAttribute="centerX" id="DDw-dv-m6E"/>
+                        <constraint firstItem="a6T-s5-qRr" firstAttribute="top" secondItem="Ax0-F0-aE7" secondAttribute="top" constant="20" id="UNK-Fm-gJp"/>
+                        <constraint firstAttribute="height" constant="160" id="YS4-fn-Wia"/>
                     </constraints>
                 </view>
             </subviews>

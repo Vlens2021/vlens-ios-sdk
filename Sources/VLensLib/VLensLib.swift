@@ -13,13 +13,14 @@ public protocol VLensDelegate: AnyObject {
 @MainActor
 public class VLensManager {
     
-    public init(transactionId: String, apiKey: String, secretKey: String, tenancyName: String, language: String = "en", noOfRetries: Int = 5) {
-        CachedData.shared.transactionId = transactionId
-        CachedData.shared.apiKey        = apiKey
-        CachedData.shared.secretKey     = secretKey
-        CachedData.shared.tenancyName   = tenancyName
-        CachedData.shared.language      = language
-        CachedData.shared.noOfRetries   = noOfRetries
+    public init(transactionId: String, apiKey: String, secretKey: String, tenancyName: String, language: String = "en", noOfRetries: Int = 5, allowAutoCapture: Bool = true) {
+        CachedData.shared.transactionId     = transactionId
+        CachedData.shared.apiKey            = apiKey
+        CachedData.shared.secretKey         = secretKey
+        CachedData.shared.tenancyName       = tenancyName
+        CachedData.shared.language          = language
+        CachedData.shared.noOfRetries       = noOfRetries
+        CachedData.shared.allowAutoCapture  = allowAutoCapture
     }
     
     public weak var delegate: VLensDelegate? = nil
