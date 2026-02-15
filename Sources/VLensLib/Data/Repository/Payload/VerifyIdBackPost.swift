@@ -34,24 +34,24 @@ public struct VerifyIdBackPost {
     
     // MARK: - DataClass
     public struct DataClass: Codable, Sendable {
-        let isVerificationProcessCompleted, isDigitalIdentityVerified: Bool?
-        let deviceInfo: String?
-        let user: User?
-        let idFrontData: IDFrontData?
-        let idBackData: IDBackData?
+        public let isVerificationProcessCompleted, isDigitalIdentityVerified: Bool?
+        public let deviceInfo: String?
+        public let user: User?
+        public let idFrontData: IDFrontData?
+        public let idBackData: IDBackData?
     }
     
     // MARK: - IDBackData
     public struct IDBackData: Codable, Sendable {
-        let maritalStatus, job, jobTitle, religion: String?
-        let husbandName, releaseDate, idExpiry, idNumber: String?
-        let gender: String?
+        public let maritalStatus, job, jobTitle, religion: String?
+        public let husbandName, releaseDate, idExpiry, idNumber: String?
+        public let gender: String?
     }
     
     // MARK: - IDFrontData
     public struct IDFrontData: Codable, Sendable {
-        let nameEnglish, firstNameEnglish, lastNamesEnglish, name: String?
-        let address, dateOfBirth, idNumber, gender: String?
+        public let nameEnglish, firstNameEnglish, lastNamesEnglish, name: String?
+        public let address, dateOfBirth, idNumber, gender: String?
         
         enum CodingKeys: String, CodingKey {
             case nameEnglish = "name_english"
@@ -63,9 +63,9 @@ public struct VerifyIdBackPost {
     
     // MARK: - User
     public struct User: Codable, Sendable {
-        let id: Int?
-        let name, surname, fullName, userName: String?
-        let emailAddress, phoneNumber, idNumber, address: String?
+        public let id: Int?
+        public let name, surname, fullName, userName: String?
+        public let emailAddress, phoneNumber, idNumber, address: String?
     }
     
     // MARK: - Services
