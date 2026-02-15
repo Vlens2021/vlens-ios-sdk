@@ -1,0 +1,24 @@
+name: VLensDemoApp
+options:
+  bundleIdPrefix: com.vlens
+  deploymentTarget:
+    iOS: "15.0"
+
+packages:
+  VLensLib:
+    path: ../
+
+targets:
+  VLensDemoApp:
+    type: application
+    platform: iOS
+    sources:
+      - VLensDemoApp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.vlens.demo
+        INFOPLIST_FILE: VLensDemoApp/Resources/Info.plist
+        SWIFT_VERSION: "6.0"
+        GENERATE_INFOPLIST_FILE: false
+    dependencies:
+      - package: VLensLib
