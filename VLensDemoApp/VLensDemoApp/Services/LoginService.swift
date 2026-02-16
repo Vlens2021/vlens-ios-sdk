@@ -18,13 +18,13 @@ struct LoginService {
 
         let body: [String: Any] = [
             "geoLocation": [
-                "latitude": 30.193033,
-                "longitude": 31.463339
+                "latitude": "30",
+                "longitude": 30
             ],
-            "imsi": NSNull(),
-            "imei": "123456789",
-            "phoneNumber": "+201556005675",
-            "password": "P@ssword123"
+            "imei": "test",
+            "phoneNumber": "+201118997269",
+            "password": "Moaz101@",
+            "smsProviders": 0
         ]
 
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
