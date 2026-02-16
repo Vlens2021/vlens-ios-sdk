@@ -74,7 +74,7 @@ struct ContentView: View {
             apiKey: LoginService.apiKey,
             secretKey: "",
             tenancyName: LoginService.tenancyName,
-            language: "ar",
+            language: "en",
             withLivenessOnly: isLivenessOnly,
             accessToken: accessToken,
             onSuccess: { txnId, userData in
