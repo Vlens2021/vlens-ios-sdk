@@ -2,8 +2,8 @@ import Foundation
 
 struct LoginService {
 
-    static let apiKey = "W70qYFzumZYn9nPqZXdZ39eRjpW5qRPrZ4jlxlG6c"
-    static let tenancyName = "silverkey2"
+    static let apiKey = "Nb1-JpHQjKpnkOumA_b-IsjW4xtBDuLi6u88rFgIL8M"
+    static let tenancyName = "Default"
 
     static func login() async throws -> String {
         let url = URL(string: "https://api.vlenseg.com/api/DigitalIdentity/Login")!
@@ -19,7 +19,7 @@ struct LoginService {
         let body: [String: Any] = [
             "geoLocation": [
                 "latitude": "30",
-                "longitude": 30
+                "longitude": "30"
             ],
             "imei": "test",
             "phoneNumber": "+201118997269",
@@ -30,19 +30,12 @@ struct LoginService {
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         let (data, response) = try await URLSession.shared.data(for: request)
-        
-        // Debug: Print the raw response
-        if let responseString = String(data: data, encoding: .utf8) {
-            print(">>> Login API Response: \(responseString)")
-        }
 
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw LoginError.requestFailed
-        }
-        
-        print(">>> HTTP Status Code: \(httpResponse.statusCode)")
-        
-        guard httpResponse.statusCode == 200 else {
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            if let responseString = String(data: data, encoding: .utf8) {
+                print(">>> Login API Error: \(responseString)")
+            }
             throw LoginError.requestFailed
         }
 
