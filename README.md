@@ -1,177 +1,224 @@
-# VLens iOS SDK Documentation
+# VLens iOS SDK
 
-`VLensManager` is the main entry point for integrating the VLens framework into your iOS application. It provides tools for managing transactions, setting access tokens, and presenting the VLens validation screen.
+VLens iOS SDK provides digital identity verification for iOS apps — including national ID capture (front & back), liveness detection, and face matching. It supports both **SwiftUI** and **UIKit** integration.
 
 ---
 
 ## Installation
 
 ### Requirements
-- **iOS**: 16.0 or later
-- **Swift**: 5.0 or later
+- **iOS**: 15.0 or later
+- **Swift**: 6.0 or later
+- **Xcode**: 16.0 or later
 
 ### Swift Package Manager
-To add VLensManager to your project using Swift Package Manager:
+To add VLensLib to your project using Swift Package Manager:
 
-1. In Xcode, go to **File > Add Packages...**
-2. Enter the repository/local URL for the VLens package.
-3. Select the desired version and add the package.
+1. In Xcode, go to **File → Add Package Dependencies...**
+2. Enter the repository URL:
+   ```
+   https://github.com/Vlens2021/vlens-ios-sdk
+   ```
+3. Select the desired version or branch and add the package.
 
+### Info.plist
 
-### Manual Installation of VLensManager
+Add camera permission to your `Info.plist`:
 
-To integrate VLensManager into your project manually, follow the steps below:
-
-1. **Add the Source Files:**
-   - In Xcode, copy the contents of the source files from the VLensManager package into your project directory.
-
-2. **Install Dependencies:**
-   - Add `RxSwift` and `Alamofire` to your project either using your preferred package manager (e.g., Swift Package Manager) or by using CocoaPods. You can add them with the following:
-
-   - **Using Swift Package Manager:**  
-     In Xcode, navigate to **File** → **Swift Packages** → **Add Package Dependency**, and then enter the package URL for `RxSwift` and `Alamofire`.
-
-   - **Using CocoaPods:**  
-     Add the following to your `Podfile`:
-     ```ruby
-     pod 'RxSwift'
-     pod 'Alamofire'
-     ```
-     Run `pod install` to install the dependencies.
-
-3. **Update Info.plist:**
-   - To request camera permissions, add the following key-value pair to your `Info.plist`:
-     ```xml
-     <key>NSCameraUsageDescription</key>
-     <string>Camera usage description</string>
-     ```
-     
----
-
-## Usage
-
-### Importing VLens
-Make sure to import the framework where needed:
-```swift
-import VLensLib
+```xml
+<key>NSCameraUsageDescription</key>
+<string>Camera is required for identity verification</string>
 ```
 
-### Initializing `VLensManager`
-To start using `VLensManager`, initialize it with the required parameters:
+---
+
+## Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `transactionId` | `String` | ✅ | — | Unique identifier for the transaction |
+| `apiKey` | `String` | ✅ | — | Your VLens API key |
+| `secretKey` | `String` | ✅ | — | Secret key (pass `""` if using access-token auth) |
+| `tenancyName` | `String` | ✅ | — | Your tenancy name |
+| `accessToken` | `String` | ✅ | — | Bearer token from the Login API |
+| `language` | `String` | ❌ | `"en"` | UI language — `"en"` or `"ar"` |
+| `withLivenessOnly` | `Bool` | ❌ | `false` | Skip ID capture, run liveness only |
+| `noOfRetries` | `Int` | ❌ | `5` | Number of retry attempts |
+| `allowAutoCapture` | `Bool` | ❌ | `true` | Enable automatic document capture |
+
+---
+
+## SwiftUI Integration
+
+Use the `.vlensVerification()` view modifier to present the verification flow:
 
 ```swift
-let vlensManager = VLensManager(
-    transactionId: "your_transaction_id",
-    apiKey: "your_api_key",
-    secretKey: "your_secret_key",
-    tenancyName: "your_tenancy_name",
-    language: "en" // Default is "en", but you can use "ar" for Arabic or other supported languages.
+import SwiftUI
+import VLensLib
+
+struct ContentView: View {
+    @State private var showVLens = false
+    @State private var transactionId = ""
+    @State private var accessToken = "" // obtain from Login API
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Button("Start Verification") {
+                transactionId = UUID().uuidString
+                showVLens = true
+            }
+        }
+        .vlensVerification(
+            isPresented: $showVLens,
+            transactionId: transactionId,
+            apiKey: "YOUR_API_KEY",
+            secretKey: "",
+            tenancyName: "YOUR_TENANCY_NAME",
+            accessToken: accessToken,
+            onSuccess: { txnId, userData in
+                print("Success: \(txnId)")
+                if let name = userData?.user?.fullName {
+                    print("Name: \(name)")
+                }
+            },
+            onFailure: { txnId, error in
+                print("Failed: \(error)")
+            }
+        )
+    }
+}
+```
+
+### Liveness Only (SwiftUI)
+
+Pass `withLivenessOnly: true` to skip ID capture:
+
+```swift
+.vlensVerification(
+    isPresented: $showVLens,
+    transactionId: transactionId,
+    apiKey: "YOUR_API_KEY",
+    secretKey: "",
+    tenancyName: "YOUR_TENANCY_NAME",
+    withLivenessOnly: true,
+    accessToken: accessToken,
+    onSuccess: { txnId, userData in /* ... */ },
+    onFailure: { txnId, error in /* ... */ }
 )
 ```
 
-#### Parameters:
-- `transactionId`: Unique identifier for the transaction.
-- `apiKey`: API key for your channel.
-- `secretKey`: Secret key for secure operations.
-- `tenancyName`: Name of the tenancy for scoping operations.
-- `language`: (Optional) Language for the interface. Defaults to English (`"en"`).
-- `noOfRetries`: (Optional) Number of retries 
-
 ---
 
-### Setting the Access Token
-Set the access token when available:
+## UIKit Integration
+
+Use `VLensManager` directly in UIKit apps:
 
 ```swift
-vlensManager.setAccessToken("your_access_token")
-```
-
----
-
-### Presenting the VLens Validation Screen
-To present the validation screen, use the `present` method:
-
-```swift
-vlensManager.present(on: self, withLivenessOnly: false)
-```
-
-#### Parameters:
-- `on`: The view controller on which the VLens validation screen will be presented.
-- `withLivenessOnly`: (Optional) A Boolean indicating whether to enable only liveness detection. Defaults to `false`.
-
----
-
-### Delegate for Handling Callbacks
-Set the `VLensDelegate` to handle callbacks from the validation process:
-
-```swift
-vlensManager.delegate = self
-```
-
-#### Conform to the `VLensDelegate` Protocol
-Implement the required delegate methods to handle results:
-```swift
-extension YourViewController: VLensDelegate {
-    func onValidationSuccess() {
-        print("Validation successful!")
-    }
-
-    func onValidationFailure(error: Error) {
-        print("Validation failed with error: \(error.localizedDescription)")
-    }
-}
-```
-
----
-
-## Debugging
-To enable debug logging, ensure the `Constants.IS_DEBUG` flag is set to `true`. Debug logs will be printed to the console.
-
----
-
-## Example Usage
-Here's a complete example:
-```swift
+import UIKit
 import VLensLib
 
-class ExampleViewController: UIViewController {
+class VerificationViewController: UIViewController, VLensDelegate {
+
     private var vlensManager: VLensManager!
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        // Initialize VLensManager
+    func startVerification() {
         vlensManager = VLensManager(
-            transactionId: "123456",
-            apiKey: "your_api_key",
-            secretKey: "your_secret_key",
-            tenancyName: "example_tenancy",
+            transactionId: UUID().uuidString,
+            apiKey: "YOUR_API_KEY",
+            secretKey: "",
+            tenancyName: "YOUR_TENANCY_NAME",
             language: "en"
         )
-        
-        vlensManager.setAccessToken("your_access_token")
+        vlensManager.setAccessToken("YOUR_ACCESS_TOKEN")
         vlensManager.delegate = self
+        vlensManager.present(on: self, withLivenessOnly: false)
     }
 
-    @IBAction func startValidation(_ sender: UIButton) {
-        vlensManager.present(on: self)
+    // MARK: - VLensDelegate
+
+    func didValidateSuccessfully(transactionId: String, userData: VerifyIdBackPost.DataClass?) {
+        print("Success: \(transactionId)")
+        print("Name: \(userData?.user?.fullName ?? "N/A")")
+    }
+
+    func didFailToValidate(transactionId: String, error: String) {
+        print("Failed: \(error)")
     }
 }
+```
 
-extension ExampleViewController: VLensDelegate {
-    func onValidationSuccess() {
-        print("Validation successful!")
-    }
+---
 
-    func onValidationFailure(error: Error) {
-        print("Validation failed: \(error.localizedDescription)")
-    }
+## Obtaining an Access Token
+
+Before starting verification, obtain an access token from the VLens Login API:
+
+```
+POST https://api.vlenseg.com/api/DigitalIdentity/Login
+```
+
+**Headers:**
+
+| Header | Value |
+|--------|-------|
+| `Content-Type` | `application/json` |
+| `Accept` | `text/plain` |
+| `ApiKey` | Your API key |
+| `TenancyName` | Your tenancy name |
+
+**Body:**
+
+```json
+{
+  "geoLocation": { "latitude": "30", "longitude": "30" },
+  "imei": "device_identifier",
+  "phoneNumber": "+20XXXXXXXXXX",
+  "password": "your_password",
+  "smsProviders": 0
 }
+```
+
+**Response:** Extract `data.accessToken` from the JSON response.
+
+---
+
+## Callbacks
+
+### onSuccess / didValidateSuccessfully
+
+Called when verification completes successfully. Provides:
+- `transactionId` — The transaction identifier
+- `userData` — A `VerifyIdBackPost.DataClass?` containing:
+  - `user?.fullName` — Full name from the ID
+  - `user?.idNumber` — National ID number
+  - `idFrontData` — Front ID extracted data
+  - `idBackData` — Back ID extracted data
+  - `isVerificationProcessCompleted` — Whether all steps completed
+  - `isDigitalIdentityVerified` — Whether identity was verified
+
+### onFailure / didFailToValidate
+
+Called when verification fails or is cancelled. Provides:
+- `transactionId` — The transaction identifier
+- `error` — Error description string
+
+---
+
+## Language Support
+
+The SDK supports English and Arabic:
+
+```swift
+// English (default)
+language: "en"
+
+// Arabic
+language: "ar"
 ```
 
 ---
 
 ## Support
-For issues or inquiries, please contact [mtaher@vlenseg.com](mailto:mtaher@vlenseg.com).
 
----
+For issues or inquiries, contact [mtaher@vlenseg.com](mailto:mtaher@vlenseg.com).
+
