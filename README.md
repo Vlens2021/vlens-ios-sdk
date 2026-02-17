@@ -220,5 +220,5 @@ language: "ar"
 
 ## Support
 
-For issues or inquiries, contact [mtaher@vlenseg.com](mailto:mtaher@vlenseg.com).
+For issues or inquiries, contact [mhamed@vlenseg.com](mailto:mhamed@vlenseg.com).
 
