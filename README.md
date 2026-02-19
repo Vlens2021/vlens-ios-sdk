@@ -45,6 +45,60 @@ Add camera permission to your `Info.plist`:
 | `withLivenessOnly` | `Bool` | ❌ | `false` | Skip ID capture, run liveness only |
 | `noOfRetries` | `Int` | ❌ | `5` | Number of retry attempts |
 | `allowAutoCapture` | `Bool` | ❌ | `true` | Enable automatic document capture |
+| `showCloseButton` | `Bool` | ❌ | `true`* | Show "X" close button in top-right corner |
+| `colors` | `VLensColors` | ❌ | `.default` | UI color configuration for branding |
+| `onDismiss` | `(() -> Void)?` | ❌ | `nil` | Called when user taps the close button |
+
+> \* `showCloseButton` defaults to `true` when using `VLensVerificationView` directly, and `false` when using the `.vlensVerification()` modifier.
+
+---
+
+## UI Customization
+
+Customize the SDK's appearance to match your app's branding using `VLensColors`:
+
+```swift
+let customColors = VLensColors(
+    light: VLensColorConfig(
+        accent: "#007AFF",      // Highlights, secondary actions
+        primary: "#1E3A5F",     // Main buttons, headers
+        secondary: "#666666",   // Supporting text
+        background: "#FFFFFF",  // Screen backgrounds
+        dark: "#1C1C1E",        // Dark variant
+        light: "#F2F2F7"        // Light variant
+    ),
+    dark: VLensColorConfig(
+        accent: "#0A84FF",
+        primary: "#FFFFFF",
+        secondary: "#ABABAB",
+        background: "#1C1C1E",
+        dark: "#000000",
+        light: "#2C2C2E"
+    )
+)
+
+// SwiftUI
+.vlensVerification(
+    isPresented: $showVLens,
+    transactionId: txnId,
+    apiKey: "...",
+    secretKey: "",
+    tenancyName: "...",
+    accessToken: token,
+    colors: customColors,
+    onSuccess: { ... },
+    onFailure: { ... }
+)
+
+// UIKit
+let manager = VLensManager(
+    transactionId: UUID().uuidString,
+    apiKey: "...",
+    secretKey: "",
+    tenancyName: "...",
+    colors: customColors
+)
+```
 
 ---
 
@@ -106,6 +160,115 @@ Pass `withLivenessOnly: true` to skip ID capture:
     onFailure: { txnId, error in /* ... */ }
 )
 ```
+
+### Flexible Presentation with VLensVerificationView
+
+For scenarios where you need more control over presentation (e.g., `.sheet`, `NavigationStack`, or custom modals), use `VLensVerificationView` directly:
+
+#### Using with .sheet
+
+```swift
+import SwiftUI
+import VLensLib
+
+struct ContentView: View {
+    @State private var showVLens = false
+    @State private var transactionId = ""
+    @State private var accessToken = ""
+
+    var body: some View {
+        VStack {
+            Button("Start Verification") {
+                transactionId = UUID().uuidString
+                showVLens = true
+            }
+        }
+        .sheet(isPresented: $showVLens) {
+            VLensVerificationView(
+                transactionId: transactionId,
+                apiKey: "YOUR_API_KEY",
+                secretKey: "",
+                tenancyName: "YOUR_TENANCY_NAME",
+                accessToken: accessToken,
+                showCloseButton: true, // Shows "X" button
+                onSuccess: { txnId, userData in
+                    showVLens = false
+                    print("Success: \(txnId)")
+                },
+                onFailure: { txnId, error in
+                    showVLens = false
+                    print("Failed: \(error)")
+                },
+                onDismiss: {
+                    showVLens = false // Called when user taps "X"
+                }
+            )
+        }
+    }
+}
+```
+
+#### Using with NavigationStack
+
+```swift
+import SwiftUI
+import VLensLib
+
+struct VerificationFlowView: View {
+    @State private var path = NavigationPath()
+    @State private var transactionId = ""
+    @State private var accessToken = ""
+
+    var body: some View {
+        NavigationStack(path: $path) {
+            VStack {
+                Button("Start Verification") {
+                    transactionId = UUID().uuidString
+                    path.append("verification")
+                }
+            }
+            .navigationDestination(for: String.self) { destination in
+                if destination == "verification" {
+                    VLensVerificationView(
+                        transactionId: transactionId,
+                        apiKey: "YOUR_API_KEY",
+                        secretKey: "",
+                        tenancyName: "YOUR_TENANCY_NAME",
+                        accessToken: accessToken,
+                        showCloseButton: false, // Use navigation bar instead
+                        onSuccess: { txnId, userData in
+                            path.removeLast()
+                        },
+                        onFailure: { txnId, error in
+                            path.removeLast()
+                        },
+                        onDismiss: {
+                            path.removeLast()
+                        }
+                    )
+                    .navigationBarBackButtonHidden(true)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button("Cancel") {
+                                path.removeLast()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+### showCloseButton & onDismiss
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `showCloseButton` | `Bool` | `true` (VLensVerificationView) / `false` (modifier) | Shows an "X" close button in the top-right corner |
+| `onDismiss` | `(() -> Void)?` | `nil` | Called when user taps the close button |
+
+> **Note:** When using `.vlensVerification()` modifier, `showCloseButton` defaults to `false` because the full-screen cover presentation handles dismissal automatically via the verification callbacks. When using `VLensVerificationView` directly, `showCloseButton` defaults to `true` to ensure users can always dismiss the view.
 
 ---
 

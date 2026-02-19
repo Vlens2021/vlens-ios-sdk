@@ -23,8 +23,11 @@ struct VLensVerificationModifier: ViewModifier {
     let accessToken: String
     let noOfRetries: Int
     let allowAutoCapture: Bool
+    let showCloseButton: Bool
+    let colors: VLensColors
     let onSuccess: (String, VerifyIdBackPost.DataClass?) -> Void
     let onFailure: (String, String) -> Void
+    let onDismiss: (() -> Void)?
 
     func body(content: Content) -> some View {
         content
@@ -39,6 +42,8 @@ struct VLensVerificationModifier: ViewModifier {
                     accessToken: accessToken,
                     noOfRetries: noOfRetries,
                     allowAutoCapture: allowAutoCapture,
+                    showCloseButton: showCloseButton,
+                    colors: colors,
                     onSuccess: { txnId, userData in
                         isPresented = false
                         onSuccess(txnId, userData)
@@ -46,6 +51,10 @@ struct VLensVerificationModifier: ViewModifier {
                     onFailure: { txnId, error in
                         isPresented = false
                         onFailure(txnId, error)
+                    },
+                    onDismiss: {
+                        isPresented = false
+                        onDismiss?()
                     }
                 )
                 .ignoresSafeArea()
@@ -55,35 +64,141 @@ struct VLensVerificationModifier: ViewModifier {
 
 // MARK: - UIViewControllerRepresentable Bridge
 
-/// Wraps `ValidationMainViewController` (UIKit) for use in SwiftUI.
+/// A SwiftUI view that wraps `ValidationMainViewController` (UIKit) for use in SwiftUI.
+///
+/// This view is **public** and can be used directly for flexible presentation scenarios
+/// such as `.sheet`, `NavigationStack`, or custom modal presentations.
 ///
 /// The `ValidationMainViewController` calls `self.dismiss(animated:completion:)` when
-/// the verification flow finishes. When hosted inside a SwiftUI `fullScreenCover`, that
-/// dismiss call bubbles up to the SwiftUI hosting controller and closes the cover.
-/// The delegate callbacks fire in the dismiss completion block, which then sets
-/// `isPresented = false` — SwiftUI sees the cover is already gone and stays consistent.
+/// the verification flow finishes. When hosted inside a SwiftUI presentation, that
+/// dismiss call bubbles up to the SwiftUI hosting controller and closes the presentation.
+/// The delegate callbacks fire in the dismiss completion block.
 ///
-/// We wrap the validation VC in a container so we can intercept its dismiss, fire the
-/// delegate callbacks immediately, and let SwiftUI handle the actual dismissal via state.
-struct VLensVerificationView: UIViewControllerRepresentable {
+/// **Parameters:**
+/// - `transactionId`: Unique transaction identifier.
+/// - `apiKey`: Your VLens API key.
+/// - `secretKey`: Your VLens secret key (pass `""` if using access-token auth).
+/// - `tenancyName`: Your tenancy name.
+/// - `language`: UI language (`"en"` or `"ar"`). Default `"en"`.
+/// - `withLivenessOnly`: Skip ID capture and run liveness only. Default `false`.
+/// - `accessToken`: Bearer token obtained from the login API.
+/// - `noOfRetries`: Number of retry attempts on failure. Default `5`.
+/// - `allowAutoCapture`: Enable automatic document capture. Default `true`.
+/// - `showCloseButton`: Show an "X" close button in the top-right corner. Default `true`.
+/// - `onSuccess`: Called with `(transactionId, userData)` on successful verification.
+/// - `onFailure`: Called with `(transactionId, errorMessage)` on failure.
+/// - `onDismiss`: Called when user taps the close button to dismiss. Use this for `.sheet` or custom presentations.
+///
+/// **Usage with .sheet:**
+/// ```swift
+/// .sheet(isPresented: $showVLens) {
+///     VLensVerificationView(
+///         transactionId: txnId,
+///         apiKey: "...",
+///         secretKey: "",
+///         tenancyName: "...",
+///         accessToken: token,
+///         showCloseButton: true,
+///         onSuccess: { txnId, userData in ... },
+///         onFailure: { txnId, error in ... },
+///         onDismiss: { showVLens = false }
+///     )
+/// }
+/// ```
+///
+/// **Usage in NavigationStack:**
+/// ```swift
+/// NavigationStack {
+///     VLensVerificationView(
+///         transactionId: txnId,
+///         apiKey: "...",
+///         secretKey: "",
+///         tenancyName: "...",
+///         accessToken: token,
+///         showCloseButton: false, // Use navigation bar instead
+///         onSuccess: { txnId, userData in ... },
+///         onFailure: { txnId, error in ... },
+///         onDismiss: { path.removeLast() }
+///     )
+///     .navigationBarBackButtonHidden(true)
+///     .toolbar {
+///         ToolbarItem(placement: .navigationBarLeading) {
+///             Button("Cancel") { path.removeLast() }
+///         }
+///     }
+/// }
+/// ```
+public struct VLensVerificationView: UIViewControllerRepresentable {
 
-    let transactionId: String
-    let apiKey: String
-    let secretKey: String
-    let tenancyName: String
-    let language: String
-    let withLivenessOnly: Bool
-    let accessToken: String
-    let noOfRetries: Int
-    let allowAutoCapture: Bool
+    public let transactionId: String
+    public let apiKey: String
+    public let secretKey: String
+    public let tenancyName: String
+    public let language: String
+    public let withLivenessOnly: Bool
+    public let accessToken: String
+    public let noOfRetries: Int
+    public let allowAutoCapture: Bool
+    public let showCloseButton: Bool
+    public let colors: VLensColors
     let onSuccess: @MainActor @Sendable (String, VerifyIdBackPost.DataClass?) -> Void
     let onFailure: @MainActor @Sendable (String, String) -> Void
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(onSuccess: onSuccess, onFailure: onFailure)
+    let onDismiss: (@MainActor @Sendable () -> Void)?
+    
+    /// Creates a VLensVerificationView for flexible presentation in SwiftUI.
+    ///
+    /// - Parameters:
+    ///   - transactionId: Unique transaction identifier.
+    ///   - apiKey: Your VLens API key.
+    ///   - secretKey: Your VLens secret key (pass `""` if using access-token auth).
+    ///   - tenancyName: Your tenancy name.
+    ///   - language: UI language (`"en"` or `"ar"`). Default `"en"`.
+    ///   - withLivenessOnly: Skip ID capture and run liveness only. Default `false`.
+    ///   - accessToken: Bearer token obtained from the login API.
+    ///   - noOfRetries: Number of retry attempts on failure. Default `5`.
+    ///   - allowAutoCapture: Enable automatic document capture. Default `true`.
+    ///   - showCloseButton: Show an "X" close button in the top-right corner. Default `true`.
+    ///   - colors: UI color configuration for branding. Default `VLensColors.default`.
+    ///   - onSuccess: Called with `(transactionId, userData)` on successful verification.
+    ///   - onFailure: Called with `(transactionId, errorMessage)` on failure.
+    ///   - onDismiss: Called when user taps the close button to dismiss.
+    public init(
+        transactionId: String,
+        apiKey: String,
+        secretKey: String,
+        tenancyName: String,
+        language: String = "en",
+        withLivenessOnly: Bool = false,
+        accessToken: String,
+        noOfRetries: Int = 5,
+        allowAutoCapture: Bool = true,
+        showCloseButton: Bool = true,
+        colors: VLensColors = .default,
+        onSuccess: @escaping @MainActor @Sendable (String, VerifyIdBackPost.DataClass?) -> Void,
+        onFailure: @escaping @MainActor @Sendable (String, String) -> Void,
+        onDismiss: (@MainActor @Sendable () -> Void)? = nil
+    ) {
+        self.transactionId = transactionId
+        self.apiKey = apiKey
+        self.secretKey = secretKey
+        self.tenancyName = tenancyName
+        self.language = language
+        self.withLivenessOnly = withLivenessOnly
+        self.accessToken = accessToken
+        self.noOfRetries = noOfRetries
+        self.allowAutoCapture = allowAutoCapture
+        self.showCloseButton = showCloseButton
+        self.colors = colors
+        self.onSuccess = onSuccess
+        self.onFailure = onFailure
+        self.onDismiss = onDismiss
     }
 
-    func makeUIViewController(context: Context) -> VLensContainerViewController {
+    public func makeCoordinator() -> Coordinator {
+        Coordinator(onSuccess: onSuccess, onFailure: onFailure, onDismiss: onDismiss)
+    }
+
+    public func makeUIViewController(context: Context) -> VLensContainerViewController {
         // Reset cached API responses to avoid stale data between sessions
         CachedData.shared.didGetVerifyFrontResponseSuccessfully = nil
         CachedData.shared.verifyFrontResponse   = nil
@@ -99,28 +214,39 @@ struct VLensVerificationView: UIViewControllerRepresentable {
         CachedData.shared.accessToken       = accessToken
         CachedData.shared.noOfRetries       = noOfRetries
         CachedData.shared.allowAutoCapture  = allowAutoCapture
+        CachedData.shared.colors            = colors
 
         let validationVC = ValidationMainViewController.instance(withLivenessOnly: withLivenessOnly)
         validationVC.delegate = context.coordinator
-
-        let container = VLensContainerViewController(child: validationVC)
+        
+        let coordinator = context.coordinator
+        let container = VLensContainerViewController(
+            child: validationVC,
+            showCloseButton: showCloseButton,
+            onCloseButtonTapped: { [weak coordinator] in
+                coordinator?.handleDismiss()
+            }
+        )
         return container
     }
 
-    func updateUIViewController(_ uiViewController: VLensContainerViewController, context: Context) {
+    public func updateUIViewController(_ uiViewController: VLensContainerViewController, context: Context) {
         // No dynamic updates needed
     }
 
     // MARK: - Coordinator (VLensDelegate)
 
-    class Coordinator: NSObject, VLensDelegate, @unchecked Sendable {
+    public class Coordinator: NSObject, VLensDelegate, @unchecked Sendable {
         let onSuccess: @MainActor @Sendable (String, VerifyIdBackPost.DataClass?) -> Void
         let onFailure: @MainActor @Sendable (String, String) -> Void
+        let onDismiss: (@MainActor @Sendable () -> Void)?
 
         init(onSuccess: @escaping @MainActor @Sendable (String, VerifyIdBackPost.DataClass?) -> Void,
-             onFailure: @escaping @MainActor @Sendable (String, String) -> Void) {
+             onFailure: @escaping @MainActor @Sendable (String, String) -> Void,
+             onDismiss: (@MainActor @Sendable () -> Void)? = nil) {
             self.onSuccess = onSuccess
             self.onFailure = onFailure
+            self.onDismiss = onDismiss
         }
 
         nonisolated func didValidateSuccessfully(transactionId: String, userData: VerifyIdBackPost.DataClass?) {
@@ -136,6 +262,13 @@ struct VLensVerificationView: UIViewControllerRepresentable {
                 callback(transactionId, error)
             }
         }
+        
+        func handleDismiss() {
+            guard let onDismiss = onDismiss else { return }
+            Task { @MainActor in
+                onDismiss()
+            }
+        }
     }
 }
 
@@ -143,12 +276,18 @@ struct VLensVerificationView: UIViewControllerRepresentable {
 
 /// A thin container that embeds `ValidationMainViewController` as a child.
 /// This gives proper UIKit containment so the child's `dismiss` call works naturally.
-class VLensContainerViewController: UIViewController {
+/// Optionally displays a close button for user-initiated dismissal.
+public class VLensContainerViewController: UIViewController {
 
     private let child: UIViewController
+    private let showCloseButton: Bool
+    private let onCloseButtonTapped: (() -> Void)?
+    private var closeButton: UIButton?
 
-    init(child: UIViewController) {
+    init(child: UIViewController, showCloseButton: Bool = false, onCloseButtonTapped: (() -> Void)? = nil) {
         self.child = child
+        self.showCloseButton = showCloseButton
+        self.onCloseButtonTapped = onCloseButtonTapped
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -156,15 +295,60 @@ class VLensContainerViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override func viewDidLoad() {
+    public override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
+        let colors = CachedData.shared.colors.current(for: traitCollection)
+        view.backgroundColor = colors.backgroundColor
 
         addChild(child)
         child.view.frame = view.bounds
         child.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(child.view)
         child.didMove(toParent: self)
+        
+        if showCloseButton {
+            setupCloseButton()
+        }
+    }
+    
+    private func setupCloseButton() {
+        let colors = CachedData.shared.colors.current(for: traitCollection)
+        
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        
+        // Create X icon using SF Symbols (iOS 13+) or fallback to text
+        if let xmarkImage = UIImage(systemName: "xmark") {
+            button.setImage(xmarkImage, for: .normal)
+        } else {
+            button.setTitle("✕", for: .normal)
+            button.titleLabel?.font = .systemFont(ofSize: 18, weight: .medium)
+        }
+        
+        button.tintColor = colors.primaryColor
+        button.backgroundColor = colors.lightColor.withAlphaComponent(0.9)
+        button.layer.cornerRadius = 18
+        button.layer.shadowColor = colors.darkColor.cgColor
+        button.layer.shadowOffset = CGSize(width: 0, height: 2)
+        button.layer.shadowRadius = 4
+        button.layer.shadowOpacity = 0.15
+        
+        button.addTarget(self, action: #selector(closeButtonTapped), for: .touchUpInside)
+        
+        view.addSubview(button)
+        
+        NSLayoutConstraint.activate([
+            button.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 12),
+            button.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            button.widthAnchor.constraint(equalToConstant: 36),
+            button.heightAnchor.constraint(equalToConstant: 36)
+        ])
+        
+        closeButton = button
+    }
+    
+    @objc private func closeButtonTapped() {
+        onCloseButtonTapped?()
     }
 }
 
@@ -174,8 +358,8 @@ public extension View {
 
     /// Presents the VLens verification flow as a full-screen cover.
     ///
-    /// This is the recommended way to use VLens in a SwiftUI app. It wraps the UIKit-based
-    /// SDK and manages presentation/dismissal through SwiftUI state.
+    /// This is the recommended way to use VLens in a SwiftUI app when you want full-screen presentation.
+    /// For more flexibility (e.g., `.sheet`, `NavigationStack`), use `VLensVerificationView` directly.
     ///
     /// **Parameters mirror `VLensManager`'s initializer** so every SDK capability is available:
     /// - `isPresented`: Binding that controls presentation.
@@ -188,8 +372,11 @@ public extension View {
     /// - `accessToken`: Bearer token obtained from the login API.
     /// - `noOfRetries`: Number of retry attempts on failure. Default `5`.
     /// - `allowAutoCapture`: Enable automatic document capture. Default `true`.
+    /// - `showCloseButton`: Show an "X" close button. Default `false` (since fullScreenCover handles dismissal).
+    /// - `colors`: UI color configuration for branding. Default `VLensColors.default`.
     /// - `onSuccess`: Called with `(transactionId, userData)` on successful verification.
     /// - `onFailure`: Called with `(transactionId, errorMessage)` on failure or cancellation.
+    /// - `onDismiss`: Called when user taps the close button. Only relevant if `showCloseButton` is `true`.
     ///
     /// Usage:
     /// ```swift
@@ -200,9 +387,30 @@ public extension View {
     ///     secretKey: "",
     ///     tenancyName: "...",
     ///     accessToken: token,
+    ///     colors: VLensColors(
+    ///         light: VLensColorConfig(primary: "#1E3A5F", accent: "#007AFF"),
+    ///         dark: VLensColorConfig(primary: "#FFFFFF", accent: "#0A84FF")
+    ///     ),
     ///     onSuccess: { txnId, userData in print(userData) },
     ///     onFailure: { txnId, error in print(error) }
     /// )
+    /// ```
+    ///
+    /// **For flexible presentation**, use `VLensVerificationView` directly:
+    /// ```swift
+    /// .sheet(isPresented: $showVLens) {
+    ///     VLensVerificationView(
+    ///         transactionId: txnId,
+    ///         apiKey: "...",
+    ///         secretKey: "",
+    ///         tenancyName: "...",
+    ///         accessToken: token,
+    ///         showCloseButton: true,
+    ///         onSuccess: { ... },
+    ///         onFailure: { ... },
+    ///         onDismiss: { showVLens = false }
+    ///     )
+    /// }
     /// ```
     @MainActor
     func vlensVerification(
@@ -216,8 +424,11 @@ public extension View {
         accessToken: String,
         noOfRetries: Int = 5,
         allowAutoCapture: Bool = true,
+        showCloseButton: Bool = false,
+        colors: VLensColors = .default,
         onSuccess: @escaping (String, VerifyIdBackPost.DataClass?) -> Void,
-        onFailure: @escaping (String, String) -> Void
+        onFailure: @escaping (String, String) -> Void,
+        onDismiss: (() -> Void)? = nil
     ) -> some View {
         self.modifier(
             VLensVerificationModifier(
@@ -231,8 +442,11 @@ public extension View {
                 accessToken: accessToken,
                 noOfRetries: noOfRetries,
                 allowAutoCapture: allowAutoCapture,
+                showCloseButton: showCloseButton,
+                colors: colors,
                 onSuccess: onSuccess,
-                onFailure: onFailure
+                onFailure: onFailure,
+                onDismiss: onDismiss
             )
         )
     }

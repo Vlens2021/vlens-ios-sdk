@@ -26,7 +26,8 @@ class StartNationalIdValidationViewController: UIViewController {
 
     public override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white // Just to confirm it loaded
+        let colors = CachedData.shared.colors.current(for: traitCollection)
+        view.backgroundColor = colors.backgroundColor
     }
 
     @IBAction func nextButtonAction(_ sender: Any) {
