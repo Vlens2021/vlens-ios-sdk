@@ -13,7 +13,7 @@ public protocol VLensDelegate: AnyObject {
 @MainActor
 public class VLensManager {
     
-    public init(transactionId: String, apiKey: String, secretKey: String, tenancyName: String, language: String = "en", noOfRetries: Int = 5, allowAutoCapture: Bool = true) {
+    public init(transactionId: String, apiKey: String, secretKey: String, tenancyName: String, language: String = "en", noOfRetries: Int = 5, allowAutoCapture: Bool = true, colors: VLensColors = .default) {
         CachedData.shared.transactionId     = transactionId
         CachedData.shared.apiKey            = apiKey
         CachedData.shared.secretKey         = secretKey
@@ -21,10 +21,17 @@ public class VLensManager {
         CachedData.shared.language          = language
         CachedData.shared.noOfRetries       = noOfRetries
         CachedData.shared.allowAutoCapture  = allowAutoCapture
+        CachedData.shared.colors            = colors
     }
     
     public weak var delegate: VLensDelegate? = nil
     
+    /// Sets the UI color configuration for branding.
+    ///
+    /// - Parameter colors: The color configuration to use
+    public func setColors(_ colors: VLensColors) {
+        CachedData.shared.colors = colors
+    }
     
     public func setAccessToken(_ accessToken: String) {
         CachedData.shared.accessToken = accessToken

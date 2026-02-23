@@ -20,6 +20,7 @@ class CachedData {
     var language         : String   = "en"
     var noOfRetries      : Int      = 5
     var allowAutoCapture : Bool     = false
+    var colors           : VLensColors = .default
     
     // MARK: - Transaction Properties
     var transactionId = ""

@@ -55,7 +55,8 @@ class ValidationMainViewController: UIViewController {
 
     public override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
+        let colors = CachedData.shared.colors.current(for: traitCollection)
+        view.backgroundColor = colors.backgroundColor
         
         viewModel.initData()
         
