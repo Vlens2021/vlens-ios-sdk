@@ -8,8 +8,8 @@ VLens iOS SDK provides digital identity verification for iOS apps — including 
 
 ### Requirements
 - **iOS**: 15.0 or later
-- **Swift**: 6.0 or later
-- **Xcode**: 16.0 or later
+- **Swift**: 5.5 or later
+- **Xcode**: 13.0 or later
 
 ### Swift Package Manager
 To add VLensLib to your project using Swift Package Manager:
@@ -19,7 +19,7 @@ To add VLensLib to your project using Swift Package Manager:
    ```
    https://github.com/Vlens2021/vlens-ios-sdk
    ```
-3. Select the desired version or branch and add the package.
+3. Select version **1.1.0** (or the latest release) and click **Add Package**.
 
 ### Info.plist
 
