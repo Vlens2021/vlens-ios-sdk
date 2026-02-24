@@ -249,14 +249,14 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
             self.onDismiss = onDismiss
         }
 
-        nonisolated func didValidateSuccessfully(transactionId: String, userData: VerifyIdBackPost.DataClass?) {
+        public nonisolated func didValidateSuccessfully(transactionId: String, userData: VerifyIdBackPost.DataClass?) {
             let callback = onSuccess
             Task { @MainActor in
                 callback(transactionId, userData)
             }
         }
 
-        nonisolated func didFailToValidate(transactionId: String, error: String) {
+        public nonisolated func didFailToValidate(transactionId: String, error: String) {
             let callback = onFailure
             Task { @MainActor in
                 callback(transactionId, error)
