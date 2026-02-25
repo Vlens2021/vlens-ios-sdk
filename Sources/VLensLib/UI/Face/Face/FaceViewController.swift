@@ -16,7 +16,7 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
         let viewController = FaceViewController()
         return viewController
     }
-    
+
     public init() {
         super.init(nibName: "FaceViewController", bundle: .module)
     }
@@ -24,48 +24,105 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
     required init?(coder: NSCoder) {
         super.init(coder: coder)
     }
-    
+
     @IBOutlet weak var torchButton: UIButton!
     @IBOutlet weak var hintLabel: UILabel!
     @IBOutlet weak var hintImageView: UIImageView!
     @IBOutlet weak var cameraPreview: UIView!
-    
+
     var audioPlayer: AVAudioPlayer?
 
-    private var sceneView: ARSCNView!
+    // TrueDepth path
+    private var sceneView: ARSCNView?
     private var isProcessing: Bool = false
-    
+
+    // Fallback path (no TrueDepth)
+    private var captureSession: AVCaptureSession?
+    private var photoOutput: AVCapturePhotoOutput?
+    private var previewLayer: AVCaptureVideoPreviewLayer?
+    private var captureTimer: Timer?
+
     var delegate: ValidationMainViewControllerDelegate? = nil
     var viewModel: FaceValidationViewModel? = nil
-    
+
     private let createdDate = Date()
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Initialize ARSCNView
-        sceneView = ARSCNView(frame: self.view.frame)
-        sceneView.delegate = self
-        sceneView.session = ARSession()
-        sceneView.automaticallyUpdatesLighting = true
-        self.cameraPreview.addSubview(sceneView)
-        
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            // Start ARKit face tracking
-            let configuration = ARFaceTrackingConfiguration()
-            self.sceneView.session.run(configuration)
+        if ARFaceTrackingConfiguration.isSupported {
+            setupARKitSession()
+        } else {
+            setupFallbackCameraSession()
         }
+    }
+
+    // MARK: - TrueDepth path
+
+    private func setupARKitSession() {
+        let arView = ARSCNView(frame: self.view.frame)
+        arView.delegate = self
+        arView.session = ARSession()
+        arView.automaticallyUpdatesLighting = true
+        cameraPreview.addSubview(arView)
+        sceneView = arView
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            let configuration = ARFaceTrackingConfiguration()
+            arView.session.run(configuration)
+        }
+    }
+
+    // MARK: - Fallback path (regular front camera, auto-capture every 3 s)
+
+    private func setupFallbackCameraSession() {
+        let session = AVCaptureSession()
+        session.sessionPreset = .photo
+
+        guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front),
+              let input = try? AVCaptureDeviceInput(device: device) else { return }
+
+        let output = AVCapturePhotoOutput()
+        guard session.canAddInput(input), session.canAddOutput(output) else { return }
+        session.addInput(input)
+        session.addOutput(output)
+
+        let preview = AVCaptureVideoPreviewLayer(session: session)
+        preview.videoGravity = .resizeAspectFill
+        preview.frame = cameraPreview.bounds
+        cameraPreview.layer.addSublayer(preview)
+
+        captureSession = session
+        photoOutput = output
+        previewLayer = preview
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            session.startRunning()
+        }
+
+        captureTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { [weak self] _ in
+            self?.captureFallbackPhoto()
+        }
+    }
+
+    private func captureFallbackPhoto() {
+        guard !isProcessing else { return }
+        isProcessing = true
+        let settings = AVCapturePhotoSettings()
+        photoOutput?.capturePhoto(with: settings, delegate: self)
     }
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         sceneView?.frame = cameraPreview.bounds
+        previewLayer?.frame = cameraPreview.bounds
     }
-    
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        sceneView.session.pause()
+        sceneView?.session.pause()
+        captureTimer?.invalidate()
+        captureSession?.stopRunning()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -154,8 +211,11 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
         }
         
         isProcessing = true
-        
-        let currentImage = sceneView.snapshot()
+
+        guard let currentImage = sceneView?.snapshot() else {
+            isProcessing = false
+            return
+        }
 
         let type = viewModel.currentType
         
@@ -300,7 +360,7 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
         }
         return false
     }
-    
+
     private func isTurnLeft(faceAnchor: ARFaceAnchor) -> Bool {
         let headRotationY = faceAnchor.transform.columns.2.x
         if headRotationY < -0.23 {
@@ -308,7 +368,7 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
         }
         return false
     }
-    
+
     private func isHeadStraight(faceAnchor: ARFaceAnchor) -> Bool {
         let headRotationY = faceAnchor.transform.columns.2.x
         if headRotationY > -0.2 && headRotationY < 0.2 {
@@ -317,4 +377,27 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
         return false
     }
 
+}
+
+// MARK: - Fallback photo capture delegate
+
+extension FaceViewController: AVCapturePhotoCaptureDelegate {
+    func photoOutput(_ output: AVCapturePhotoOutput,
+                     didFinishProcessingPhoto photo: AVCapturePhoto,
+                     error: Error?) {
+        guard let data = photo.fileDataRepresentation(),
+              let image = UIImage(data: data) else {
+            isProcessing = false
+            return
+        }
+
+        viewModel?.face = image.jpegData(compressionQuality: 1)?.base64EncodedString() ?? ""
+
+        DispatchQueue.main.async { [self] in
+            playSuccessSound()
+            Task {
+                await delegate?.didFinishValidationStepNumber(viewModel?.getStepIndex() ?? 0)
+            }
+        }
+    }
 }
