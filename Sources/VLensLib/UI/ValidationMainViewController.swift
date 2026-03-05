@@ -12,6 +12,7 @@ protocol ValidationMainViewControllerDelegate {
     func didFinishValidationStepNumber(_ stepNumber: Int) async
     func didRetry(stepNumber: Int) async
     func didCancel() async
+    func didFailWithError(_ error: String) async
 }
 
 class ValidationMainViewController: UIViewController {
@@ -228,5 +229,9 @@ extension ValidationMainViewController: ValidationMainViewControllerDelegate {
     
     func didCancel() {
         closeSdkWithResult(errorMessage: "USER_TAPPED_CANCEL")
+    }
+    
+    func didFailWithError(_ error: String) {
+        closeSdkWithResult(errorMessage: error)
     }
 }
