@@ -23,6 +23,7 @@ struct VLensVerificationModifier: ViewModifier {
     let accessToken: String
     let noOfRetries: Int
     let allowAutoCapture: Bool
+    let allowNonTrueDepthFallback: Bool
     let showCloseButton: Bool
     let colors: VLensColors
     let onSuccess: (String, VerifyIdBackPost.DataClass?) -> Void
@@ -42,6 +43,7 @@ struct VLensVerificationModifier: ViewModifier {
                     accessToken: accessToken,
                     noOfRetries: noOfRetries,
                     allowAutoCapture: allowAutoCapture,
+                    allowNonTrueDepthFallback: allowNonTrueDepthFallback,
                     showCloseButton: showCloseButton,
                     colors: colors,
                     onSuccess: { txnId, userData in
@@ -139,6 +141,7 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
     public let accessToken: String
     public let noOfRetries: Int
     public let allowAutoCapture: Bool
+    public let allowNonTrueDepthFallback: Bool
     public let showCloseButton: Bool
     public let colors: VLensColors
     let onSuccess: @MainActor @Sendable (String, VerifyIdBackPost.DataClass?) -> Void
@@ -157,6 +160,7 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
     ///   - accessToken: Bearer token obtained from the login API.
     ///   - noOfRetries: Number of retry attempts on failure. Default `5`.
     ///   - allowAutoCapture: Enable automatic document capture. Default `true`.
+    ///   - allowNonTrueDepthFallback: Allow SDK to run on devices without TrueDepth camera (e.g., iPhone 8, SE). Default `false`.
     ///   - showCloseButton: Show an "X" close button in the top-right corner. Default `true`.
     ///   - colors: UI color configuration for branding. Default `VLensColors.default`.
     ///   - onSuccess: Called with `(transactionId, userData)` on successful verification.
@@ -172,6 +176,7 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
         accessToken: String,
         noOfRetries: Int = 5,
         allowAutoCapture: Bool = true,
+        allowNonTrueDepthFallback: Bool = false,
         showCloseButton: Bool = true,
         colors: VLensColors = .default,
         onSuccess: @escaping @MainActor @Sendable (String, VerifyIdBackPost.DataClass?) -> Void,
@@ -187,6 +192,7 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
         self.accessToken = accessToken
         self.noOfRetries = noOfRetries
         self.allowAutoCapture = allowAutoCapture
+        self.allowNonTrueDepthFallback = allowNonTrueDepthFallback
         self.showCloseButton = showCloseButton
         self.colors = colors
         self.onSuccess = onSuccess
@@ -214,6 +220,7 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
         CachedData.shared.accessToken       = accessToken
         CachedData.shared.noOfRetries       = noOfRetries
         CachedData.shared.allowAutoCapture  = allowAutoCapture
+        CachedData.shared.allowNonTrueDepthFallback = allowNonTrueDepthFallback
         CachedData.shared.colors            = colors
 
         let validationVC = ValidationMainViewController.instance(withLivenessOnly: withLivenessOnly)
@@ -372,6 +379,7 @@ public extension View {
     /// - `accessToken`: Bearer token obtained from the login API.
     /// - `noOfRetries`: Number of retry attempts on failure. Default `5`.
     /// - `allowAutoCapture`: Enable automatic document capture. Default `true`.
+    /// - `allowNonTrueDepthFallback`: Allow SDK on devices without TrueDepth camera (falls back to auto-capture). Default `false`.
     /// - `showCloseButton`: Show an "X" close button. Default `false` (since fullScreenCover handles dismissal).
     /// - `colors`: UI color configuration for branding. Default `VLensColors.default`.
     /// - `onSuccess`: Called with `(transactionId, userData)` on successful verification.
@@ -424,6 +432,7 @@ public extension View {
         accessToken: String,
         noOfRetries: Int = 5,
         allowAutoCapture: Bool = true,
+        allowNonTrueDepthFallback: Bool = false,
         showCloseButton: Bool = false,
         colors: VLensColors = .default,
         onSuccess: @escaping (String, VerifyIdBackPost.DataClass?) -> Void,
@@ -442,6 +451,7 @@ public extension View {
                 accessToken: accessToken,
                 noOfRetries: noOfRetries,
                 allowAutoCapture: allowAutoCapture,
+                allowNonTrueDepthFallback: allowNonTrueDepthFallback,
                 showCloseButton: showCloseButton,
                 colors: colors,
                 onSuccess: onSuccess,
