@@ -11,6 +11,24 @@ VLens iOS SDK provides digital identity verification for iOS apps — including 
 - **Swift**: 5.5 or later
 - **Xcode**: 13.0 or later
 
+### Device Compatibility
+
+The VLens SDK uses ARKit face tracking for liveness detection, which requires a **TrueDepth camera**.
+
+| TrueDepth Camera | Devices |
+|------------------|--------|
+| ✅ Supported | iPhone X and later (excluding SE models) |
+| ❌ Not Supported | iPhone 8, iPhone 7, iPhone SE (all generations) |
+
+**Behavior based on `allowNonTrueDepthFallback`:**
+
+| `allowNonTrueDepthFallback` | TrueDepth Available | Behavior |
+|-----------------------------|---------------------|----------|
+| `false` (default) | ✅ Yes | ARKit face tracking (full liveness) |
+| `false` (default) | ❌ No | SDK closes with `DEVICE_NOT_SUPPORTED` error |
+| `true` | ✅ Yes | ARKit face tracking (full liveness) |
+| `true` | ❌ No | Fallback to auto-capture every 2 seconds |
+
 ### Swift Package Manager
 To add VLensLib to your project using Swift Package Manager:
 
@@ -19,7 +37,7 @@ To add VLensLib to your project using Swift Package Manager:
    ```
    https://github.com/Vlens2021/vlens-ios-sdk
    ```
-3. Select version **1.1.0** (or the latest release) and click **Add Package**.
+3. Select version **1.2.0** (or the latest release) and click **Add Package**.
 
 ### Info.plist
 
@@ -45,6 +63,7 @@ Add camera permission to your `Info.plist`:
 | `withLivenessOnly` | `Bool` | ❌ | `false` | Skip ID capture, run liveness only |
 | `noOfRetries` | `Int` | ❌ | `5` | Number of retry attempts |
 | `allowAutoCapture` | `Bool` | ❌ | `true` | Enable automatic document capture |
+| `allowNonTrueDepthFallback` | `Bool` | ❌ | `false` | Allow SDK on devices without TrueDepth camera |
 | `showCloseButton` | `Bool` | ❌ | `true`* | Show "X" close button in top-right corner |
 | `colors` | `VLensColors` | ❌ | `.default` | UI color configuration for branding |
 | `onDismiss` | `(() -> Void)?` | ❌ | `nil` | Called when user taps the close button |
