@@ -23,11 +23,17 @@ class StartFaceValidationViewController: UIViewController {
     }
     
     var delegate: ValidationMainViewControllerDelegate? = nil
+    
+    @IBOutlet weak var logoImageView: UIImageView?
 
     public override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Do any additional setup after loading the view.
+        // Set custom client logo if provided
+        if let clientLogo = CachedData.shared.clientLogoImage {
+            logoImageView?.image = clientLogo
+            logoImageView?.contentMode = .scaleAspectFit
+        }
     }
 
     @IBAction func nextButtonAction(_ sender: Any) {

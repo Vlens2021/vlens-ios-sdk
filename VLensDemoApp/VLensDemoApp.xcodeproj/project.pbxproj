@@ -189,14 +189,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = UVDA5XSL97;
+				DEVELOPMENT_TEAM = NB65Q7T69B;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = VLensDemoApp/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = silverkey.VLensDemo;
+				PRODUCT_BUNDLE_IDENTIFIER = vlens.vlensIOSDemo;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 6.0;
@@ -210,14 +210,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = UVDA5XSL97;
+				DEVELOPMENT_TEAM = NB65Q7T69B;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = VLensDemoApp/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = silverkey.VLensDemo;
+				PRODUCT_BUNDLE_IDENTIFIER = vlens.vlensIOSDemo;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 6.0;

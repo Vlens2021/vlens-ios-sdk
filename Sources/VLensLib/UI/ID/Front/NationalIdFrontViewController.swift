@@ -93,8 +93,9 @@ class NationalIdFrontViewController: UIViewController {
     private func didCaptureImage(_ image: UIImage) {
         Task {
             guard let imageBase64String = image.jpegData(compressionQuality: 1)?.base64EncodedString() else { return }
+            let compressedBase64 = Utils.compressBase64Image(imageBase64String) ?? imageBase64String
             do {
-                try await viewModel.postData(imageBase64: imageBase64String)
+                try await viewModel.postData(imageBase64: compressedBase64)
                 CachedData.shared.didGetVerifyFrontResponseSuccessfully = true
             } catch {
                 debugPrint(error)

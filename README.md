@@ -11,6 +11,24 @@ VLens iOS SDK provides digital identity verification for iOS apps — including 
 - **Swift**: 5.5 or later
 - **Xcode**: 13.0 or later
 
+### Device Compatibility
+
+The VLens SDK uses ARKit face tracking for liveness detection, which requires a **TrueDepth camera**.
+
+| TrueDepth Camera | Devices |
+|------------------|--------|
+| ✅ Supported | iPhone X and later (excluding SE models) |
+| ❌ Not Supported | iPhone 8, iPhone 7, iPhone SE (all generations) |
+
+**Behavior based on `allowNonTrueDepthFallback`:**
+
+| `allowNonTrueDepthFallback` | TrueDepth Available | Behavior |
+|-----------------------------|---------------------|----------|
+| `false` (default) | ✅ Yes | ARKit face tracking (full liveness) |
+| `false` (default) | ❌ No | SDK closes with `DEVICE_NOT_SUPPORTED` error |
+| `true` | ✅ Yes | ARKit face tracking (full liveness) |
+| `true` | ❌ No | Fallback to auto-capture every 2 seconds |
+
 ### Swift Package Manager
 To add VLensLib to your project using Swift Package Manager:
 
@@ -45,11 +63,91 @@ Add camera permission to your `Info.plist`:
 | `withLivenessOnly` | `Bool` | ❌ | `false` | Skip ID capture, run liveness only |
 | `noOfRetries` | `Int` | ❌ | `5` | Number of retry attempts |
 | `allowAutoCapture` | `Bool` | ❌ | `true` | Enable automatic document capture |
+| `allowNonTrueDepthFallback` | `Bool` | ❌ | `false` | Allow SDK on devices without TrueDepth camera |
 | `showCloseButton` | `Bool` | ❌ | `true`* | Show "X" close button in top-right corner |
 | `colors` | `VLensColors` | ❌ | `.default` | UI color configuration for branding |
+| `enableSounds` | `Bool` | ❌ | `true` | Enable/disable SDK sounds |
+| `clientLogoImage` | `UIImage?` | ❌ | `nil` | Custom client logo image |
+| `showIdReviewPage` | `Bool` | ❌ | `true` | Show ID review page after capture |
 | `onDismiss` | `(() -> Void)?` | ❌ | `nil` | Called when user taps the close button |
 
 > \* `showCloseButton` defaults to `true` when using `VLensVerificationView` directly, and `false` when using the `.vlensVerification()` modifier.
+
+---
+
+## Sound Control
+
+The SDK plays audio feedback for face verification instructions (smile, blink, turn head) and success sounds. You can disable all sounds:
+
+```swift
+// UIKit
+let manager = VLensManager(
+    transactionId: UUID().uuidString,
+    apiKey: "...",
+    secretKey: "",
+    tenancyName: "...",
+    enableSounds: false  // Disable all SDK sounds
+)
+
+// Or set after initialization:
+manager.setEnableSounds(false)
+```
+
+**Affected sounds when `enableSounds: false`:**
+- Face verification instruction sounds (smile, blink, turn left/right, look straight)
+- Success confirmation sounds
+- All audio feedback is muted
+
+---
+
+## Custom Logo (Branding)
+
+Display your company logo instead of the VLens logo throughout the SDK:
+
+```swift
+// UIKit
+let manager = VLensManager(
+    transactionId: UUID().uuidString,
+    apiKey: "...",
+    secretKey: "",
+    tenancyName: "...",
+    clientLogoImage: UIImage(named: "your-company-logo")
+)
+
+// Or set after initialization:
+manager.setClientLogoImage(UIImage(named: "your-company-logo"))
+```
+
+The custom logo will be displayed on:
+- National ID scan start screen
+- Face verification start screen
+
+---
+
+## ID Review Page
+
+After capturing both sides of the national ID, the SDK displays a review page showing the extracted data. Users can verify the information before proceeding to face verification.
+
+```swift
+// UIKit - Enable ID review page (default: true)
+let manager = VLensManager(
+    transactionId: UUID().uuidString,
+    apiKey: "...",
+    secretKey: "",
+    tenancyName: "...",
+    showIdReviewPage: true
+)
+
+// Disable ID review page to skip directly to face verification:
+manager.setShowIdReviewPage(false)
+```
+
+**ID Review Page Features:**
+- Displays extracted front ID data (name, address, date of birth, ID number)
+- Displays extracted back ID data (gender, marital status, job, religion, issue/expiry dates)
+- Shows verification status badge
+- **"Retake ID"** button: Returns to ID scanning to recapture
+- **"Continue"** button: Proceeds to face verification
 
 ---
 

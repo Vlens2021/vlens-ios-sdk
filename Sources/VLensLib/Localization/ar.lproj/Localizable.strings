@@ -44,3 +44,22 @@
 "retry_scanning" = "إعادة المحاولة في المسح";
 "retry" = "إعادة المحاولة";
 "close" = "إغلاق";
+
+"review_data" = "مراجعة بياناتك";
+"verify_data_subtitle" = "يرجى التحقق من صحة جميع المعلومات قبل المتابعة";
+"front_side" = "الوجه الأمامي";
+"back_side" = "الوجه الخلفي";
+"name" = "الاسم";
+"address" = "العنوان";
+"date_of_birth" = "تاريخ الميلاد";
+"national_id_number" = "رقم الهوية الوطنية";
+"gender" = "الجنس";
+"marital_status" = "الحالة الاجتماعية";
+"job" = "الوظيفة";
+"religion" = "الديانة";
+"issue_date" = "تاريخ الإصدار";
+"expiry_date" = "تاريخ الانتهاء";
+"retake_id" = "إعادة مسح البطاقة";
+"continue_button" = "متابعة";
+"verified" = "تم التحقق من الهوية الرقمية";
+"pending_verification" = "في انتظار التحقق";

@@ -49,21 +49,43 @@ class ValidationMainViewModel {
                 face3ViewModel!
             ]
         } else {
-            faceStepIndex = 4
-            // create face view models
-            self.face1ViewModel = FaceValidationViewModel(currentType: face1Type, stepName: face1Type.title, stepIndex: 4)
-            self.face2ViewModel = FaceValidationViewModel(currentType: face2Type, stepName: face2Type.title, stepIndex: 5)
-            self.face3ViewModel = FaceValidationViewModel(currentType: face3Type, stepName: face3Type.title, stepIndex: 6)
+            // Determine steps based on whether ID review page is shown
+            let showIdReview = CachedData.shared.showIdReviewPage
             
-            stepsViewModels = [
-                StartNationalIdValidationViewModel(),
-                NationalIdFrontViewModel(),
-                NationalIdBackViewModel(),
-                StartFaceValidationViewModel(),
-                face1ViewModel!,
-                face2ViewModel!,
-                face3ViewModel!
-            ]
+            if showIdReview {
+                faceStepIndex = 5  // After IdReview
+                // create face view models
+                self.face1ViewModel = FaceValidationViewModel(currentType: face1Type, stepName: face1Type.title, stepIndex: 5)
+                self.face2ViewModel = FaceValidationViewModel(currentType: face2Type, stepName: face2Type.title, stepIndex: 6)
+                self.face3ViewModel = FaceValidationViewModel(currentType: face3Type, stepName: face3Type.title, stepIndex: 7)
+                
+                stepsViewModels = [
+                    StartNationalIdValidationViewModel(),
+                    NationalIdFrontViewModel(),
+                    NationalIdBackViewModel(),
+                    IdReviewViewModel(),  // New ID Review step
+                    StartFaceValidationViewModel(),
+                    face1ViewModel!,
+                    face2ViewModel!,
+                    face3ViewModel!
+                ]
+            } else {
+                faceStepIndex = 4
+                // create face view models
+                self.face1ViewModel = FaceValidationViewModel(currentType: face1Type, stepName: face1Type.title, stepIndex: 4)
+                self.face2ViewModel = FaceValidationViewModel(currentType: face2Type, stepName: face2Type.title, stepIndex: 5)
+                self.face3ViewModel = FaceValidationViewModel(currentType: face3Type, stepName: face3Type.title, stepIndex: 6)
+                
+                stepsViewModels = [
+                    StartNationalIdValidationViewModel(),
+                    NationalIdFrontViewModel(),
+                    NationalIdBackViewModel(),
+                    StartFaceValidationViewModel(),
+                    face1ViewModel!,
+                    face2ViewModel!,
+                    face3ViewModel!
+                ]
+            }
         }
     }
     

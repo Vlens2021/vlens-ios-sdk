@@ -21,6 +21,7 @@ class NationalIdBackViewController: UIViewController {
     @IBOutlet weak var cardOverlayView: UIView!
     @IBOutlet weak var cardPreviewImageView: UIImageView!
     @IBOutlet weak var flipCardImageView: UIImageView!
+    @IBOutlet weak var logoImageView: UIImageView?
     
     @IBOutlet weak var loadingView: UIView!
     @IBOutlet weak var loadingStatusImageView: UIImageView!
@@ -56,6 +57,13 @@ class NationalIdBackViewController: UIViewController {
         super.viewDidLoad()
         
         flipCardImageView.image = UIImage.gifImageWithName("id_flip")
+        
+        // Set custom client logo if provided
+        if let clientLogo = CachedData.shared.clientLogoImage {
+            logoImageView?.image = clientLogo
+            logoImageView?.contentMode = .scaleAspectFit
+        }
+        
         setupCamera()
     }
     
@@ -130,8 +138,9 @@ class NationalIdBackViewController: UIViewController {
             loadingStatusImageView.image = UIImage.gifImageWithName("scan_id_final")
             
             guard let imageBase64String = image.jpegData(compressionQuality: 1)?.base64EncodedString() else { return }
+            let compressedBase64 = Utils.compressBase64Image(imageBase64String) ?? imageBase64String
             do {
-                try await viewModel.postData(imageBase64: imageBase64String)
+                try await viewModel.postData(imageBase64: compressedBase64)
                 if let error = viewModel.errorMessage {
                     loadingStatusImageView.image = UIImage.gifImageWithName("id_error_final")
                     loadingMessageLabel.text = error

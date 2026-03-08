@@ -12,6 +12,7 @@ protocol ValidationMainViewControllerDelegate {
     func didFinishValidationStepNumber(_ stepNumber: Int) async
     func didRetry(stepNumber: Int) async
     func didCancel() async
+    func didFailWithError(_ error: String) async
 }
 
 class ValidationMainViewController: UIViewController {
@@ -25,6 +26,7 @@ class ValidationMainViewController: UIViewController {
     @IBOutlet weak var containerView: UIView!
     @IBOutlet weak var loadingView: UIView!
     @IBOutlet weak var loadingImageView: UIImageView!
+    @IBOutlet weak var logoImageView: UIImageView?
 //    @IBOutlet weak var loadingTitleLabel: UILabel!
     @IBOutlet weak var loadingMessageLabel: UILabel!
     
@@ -36,6 +38,7 @@ class ValidationMainViewController: UIViewController {
     private let startNationalIdValidationViewController      : StartNationalIdValidationViewController  = .instance()
     private var nationalIdFrontValidationViewController      : NationalIdFrontViewController            = .instance()
     private var nationalIdBackValidationViewController       : NationalIdBackViewController             = .instance()
+    private var idReviewViewController                       : IdReviewViewController                   = .instance()
     private let startFaceValidationViewController            : StartFaceValidationViewController        = .instance()
     private let face1ValidationViewController                : FaceViewController                       = .instance()
     private let face2ValidationViewController                : FaceViewController                       = .instance()
@@ -57,6 +60,12 @@ class ValidationMainViewController: UIViewController {
         super.viewDidLoad()
         let colors = CachedData.shared.colors.current(for: traitCollection)
         view.backgroundColor = colors.backgroundColor
+        
+        // Set custom client logo if provided
+        if let clientLogo = CachedData.shared.clientLogoImage {
+            logoImageView?.image = clientLogo
+            logoImageView?.contentMode = .scaleAspectFit
+        }
         
         viewModel.initData()
         
@@ -93,6 +102,11 @@ class ValidationMainViewController: UIViewController {
         case is NationalIdBackViewModel:
             nationalIdBackValidationViewController.delegate = self
             switchToViewController(nationalIdBackValidationViewController)
+            
+        case is IdReviewViewModel:
+            idReviewViewController = .instance()
+            idReviewViewController.delegate = self
+            switchToViewController(idReviewViewController)
             
         case is StartFaceValidationViewModel:
             startFaceValidationViewController.delegate = self
@@ -186,6 +200,19 @@ class ValidationMainViewController: UIViewController {
 
 extension ValidationMainViewController: ValidationMainViewControllerDelegate {
     func didBackToPreviousStep() {
+        let currentStepViewModel = viewModel.stepsViewModels[viewModel.currentStepIndex]
+        
+        // Special handling for IdReview - go back to NationalIdFront to redo the entire scan
+        if currentStepViewModel is IdReviewViewModel {
+            // Reset ID scan and go back to front ID scan
+            viewModel.currentStepIndex = 1  // NationalIdFront step index
+            nationalIdFrontValidationViewController = .instance()
+            nationalIdBackValidationViewController = .instance()
+            idReviewViewController = .instance()
+            initViewsForStep(viewModel.currentStepIndex)
+            return
+        }
+        
         viewModel.currentStepIndex -= 1
         if viewModel.currentStepIndex < 0 {
             viewModel.currentStepIndex = 0
@@ -221,6 +248,7 @@ extension ValidationMainViewController: ValidationMainViewControllerDelegate {
         if (stepNumber == 0) {
             nationalIdFrontValidationViewController = .instance()
             nationalIdBackValidationViewController = .instance()
+            idReviewViewController = .instance()
         }
         
         initViewsForStep(stepNumber)
@@ -228,5 +256,9 @@ extension ValidationMainViewController: ValidationMainViewControllerDelegate {
     
     func didCancel() {
         closeSdkWithResult(errorMessage: "USER_TAPPED_CANCEL")
+    }
+    
+    func didFailWithError(_ error: String) {
+        closeSdkWithResult(errorMessage: error)
     }
 }

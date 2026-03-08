@@ -44,3 +44,22 @@
 "retry_scanning" = "Retry scanning";
 "retry" = "Retry";
 "close" = "Close";
+
+"review_data" = "Review Your Data";
+"verify_data_subtitle" = "Please verify that all information is correct before proceeding";
+"front_side" = "Front Side";
+"back_side" = "Back Side";
+"name" = "Name";
+"address" = "Address";
+"date_of_birth" = "Date of Birth";
+"national_id_number" = "National ID Number";
+"gender" = "Gender";
+"marital_status" = "Marital Status";
+"job" = "Job";
+"religion" = "Religion";
+"issue_date" = "Issue Date";
+"expiry_date" = "Expiry Date";
+"retake_id" = "Retake ID";
+"continue_button" = "Continue";
+"verified" = "Digital Identity Verified";
+"pending_verification" = "Pending Verification";

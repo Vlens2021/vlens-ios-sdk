@@ -51,9 +51,19 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
         super.viewDidLoad()
 
         if ARFaceTrackingConfiguration.isSupported {
+            // TrueDepth available - use ARKit face tracking
             setupARKitSession()
-        } else {
+        } else if CachedData.shared.allowNonTrueDepthFallback {
+            // TrueDepth not available but fallback is enabled - use auto-capture
             setupFallbackCameraSession()
+        } else {
+            // TrueDepth not available and fallback is disabled - gracefully close SDK
+            DispatchQueue.main.async { [weak self] in
+                Task {
+                    await self?.delegate?.didFailWithError("DEVICE_NOT_SUPPORTED")
+                }
+            }
+            return
         }
     }
 
@@ -73,7 +83,7 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
         }
     }
 
-    // MARK: - Fallback path (regular front camera, auto-capture every 3 s)
+    // MARK: - Fallback path (regular front camera, auto-capture every 2 s)
 
     private func setupFallbackCameraSession() {
         let session = AVCaptureSession()
@@ -98,10 +108,6 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
 
         DispatchQueue.global(qos: .userInitiated).async {
             session.startRunning()
-        }
-
-        captureTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { [weak self] _ in
-            self?.captureFallbackPhoto()
         }
     }
 
@@ -132,6 +138,13 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
         
         hintLabel.text = (viewModel?.currentType.title as? String)?.localized
         hintImageView.image = UIImage(named: viewModel?.getImageName() ?? "Smile".localized, in: .module, with: .none)
+        
+        // Start fallback auto-capture timer after instructions are shown (non-TrueDepth devices only)
+        if captureSession != nil && !ARFaceTrackingConfiguration.isSupported {
+            captureTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { [weak self] _ in
+                self?.captureFallbackPhoto()
+            }
+        }
     }
 
     @IBAction func backButtonAction(_ sender: Any) {
@@ -153,6 +166,9 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
     }
     
     func playSound() {
+        // Check if sounds are enabled
+        guard CachedData.shared.enableSounds else { return }
+        
         let fileName = ((CachedData.shared.language == "en") ? viewModel?.getSoundFileName() : viewModel?.getSoundFileNameAr()) ?? "smile"
         guard let url = Bundle.module.url(forResource: fileName, withExtension: "mp3") else {
             debugPrint("\(fileName) MP3 file not found")
@@ -169,6 +185,9 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
     }
     
     func playSuccessSound() {
+        // Check if sounds are enabled
+        guard CachedData.shared.enableSounds else { return }
+        
         let fileName = "success"
         guard let url = Bundle.module.url(forResource: fileName, withExtension: "mp3") else {
             debugPrint("\(fileName) MP3 file not found")
