@@ -37,7 +37,7 @@ To add VLensLib to your project using Swift Package Manager:
    ```
    https://github.com/Vlens2021/vlens-ios-sdk
    ```
-3. Select version **1.1.0** (or the latest release) and click **Add Package**.
+3. Select version **1.3.0** (or the latest release) and click **Add Package**.
 
 ### Info.plist
 
@@ -91,6 +91,19 @@ let manager = VLensManager(
 
 // Or set after initialization:
 manager.setEnableSounds(false)
+
+// SwiftUI
+.vlensVerification(
+    isPresented: $showVLens,
+    transactionId: transactionId,
+    apiKey: "YOUR_API_KEY",
+    secretKey: "",
+    tenancyName: "YOUR_TENANCY_NAME",
+    accessToken: accessToken,
+    enableSounds: false,  // Disable all SDK sounds
+    onSuccess: { txnId, userData in /* ... */ },
+    onFailure: { txnId, error in /* ... */ }
+)
 ```
 
 **Affected sounds when `enableSounds: false`:**
@@ -116,6 +129,19 @@ let manager = VLensManager(
 
 // Or set after initialization:
 manager.setClientLogoImage(UIImage(named: "your-company-logo"))
+
+// SwiftUI
+.vlensVerification(
+    isPresented: $showVLens,
+    transactionId: transactionId,
+    apiKey: "YOUR_API_KEY",
+    secretKey: "",
+    tenancyName: "YOUR_TENANCY_NAME",
+    accessToken: accessToken,
+    clientLogoImage: UIImage(named: "your-company-logo"),
+    onSuccess: { txnId, userData in /* ... */ },
+    onFailure: { txnId, error in /* ... */ }
+)
 ```
 
 The custom logo will be displayed on:
@@ -140,6 +166,19 @@ let manager = VLensManager(
 
 // Disable ID review page to skip directly to face verification:
 manager.setShowIdReviewPage(false)
+
+// SwiftUI
+.vlensVerification(
+    isPresented: $showVLens,
+    transactionId: transactionId,
+    apiKey: "YOUR_API_KEY",
+    secretKey: "",
+    tenancyName: "YOUR_TENANCY_NAME",
+    accessToken: accessToken,
+    showIdReviewPage: false,  // Skip review, go directly to face verification
+    onSuccess: { txnId, userData in /* ... */ },
+    onFailure: { txnId, error in /* ... */ }
+)
 ```
 
 **ID Review Page Features:**
