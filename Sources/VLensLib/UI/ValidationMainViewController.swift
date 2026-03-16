@@ -244,13 +244,16 @@ extension ValidationMainViewController: ValidationMainViewControllerDelegate {
     }
     
     func didRetry(stepNumber: Int) {
+        viewModel.rerandomizeFaceInstructions()
+        viewModel.validationErrorMessage = nil
         viewModel.currentStepIndex = stepNumber
         if (stepNumber == 0) {
             nationalIdFrontValidationViewController = .instance()
             nationalIdBackValidationViewController = .instance()
             idReviewViewController = .instance()
         }
-        
+        loadingView.isHidden = true
+        actionsView.isHidden = true
         initViewsForStep(stepNumber)
     }
     

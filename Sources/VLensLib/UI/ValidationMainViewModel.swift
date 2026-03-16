@@ -29,11 +29,11 @@ class ValidationMainViewModel {
         let noOfFlows = FaceValidationTypes.validFlows.count
         let randomFlowIndex = Int.random(in: 0..<noOfFlows)
         let selectedFlow = FaceValidationTypes.validFlows[randomFlowIndex]
-        
+
         let face1Type = selectedFlow[0]
         let face2Type = selectedFlow[1]
         let face3Type = selectedFlow[2]
-        
+
         // create steps view models
         if withLivenessOnly {
             faceStepIndex = 1
@@ -41,7 +41,7 @@ class ValidationMainViewModel {
             self.face1ViewModel = FaceValidationViewModel(currentType: face1Type, stepName: face1Type.title, stepIndex: 1)
             self.face2ViewModel = FaceValidationViewModel(currentType: face2Type, stepName: face2Type.title, stepIndex: 2)
             self.face3ViewModel = FaceValidationViewModel(currentType: face3Type, stepName: face3Type.title, stepIndex: 3)
-            
+
             stepsViewModels = [
                 StartFaceValidationViewModel(),
                 face1ViewModel!,
@@ -51,14 +51,14 @@ class ValidationMainViewModel {
         } else {
             // Determine steps based on whether ID review page is shown
             let showIdReview = CachedData.shared.showIdReviewPage
-            
+
             if showIdReview {
                 faceStepIndex = 5  // After IdReview
                 // create face view models
                 self.face1ViewModel = FaceValidationViewModel(currentType: face1Type, stepName: face1Type.title, stepIndex: 5)
                 self.face2ViewModel = FaceValidationViewModel(currentType: face2Type, stepName: face2Type.title, stepIndex: 6)
                 self.face3ViewModel = FaceValidationViewModel(currentType: face3Type, stepName: face3Type.title, stepIndex: 7)
-                
+
                 stepsViewModels = [
                     StartNationalIdValidationViewModel(),
                     NationalIdFrontViewModel(),
@@ -75,7 +75,7 @@ class ValidationMainViewModel {
                 self.face1ViewModel = FaceValidationViewModel(currentType: face1Type, stepName: face1Type.title, stepIndex: 4)
                 self.face2ViewModel = FaceValidationViewModel(currentType: face2Type, stepName: face2Type.title, stepIndex: 5)
                 self.face3ViewModel = FaceValidationViewModel(currentType: face3Type, stepName: face3Type.title, stepIndex: 6)
-                
+
                 stepsViewModels = [
                     StartNationalIdValidationViewModel(),
                     NationalIdFrontViewModel(),
@@ -87,6 +87,26 @@ class ValidationMainViewModel {
                 ]
             }
         }
+    }
+
+    /// Re-randomizes face instructions by picking a new random flow and replacing
+    /// the three face view models in stepsViewModels. Called on every retry.
+    @MainActor
+    func rerandomizeFaceInstructions() {
+        let flows = FaceValidationTypes.validFlows
+        let selectedFlow = flows[Int.random(in: 0..<flows.count)]
+
+        let i1 = faceStepIndex
+        let i2 = faceStepIndex + 1
+        let i3 = faceStepIndex + 2
+
+        self.face1ViewModel = FaceValidationViewModel(currentType: selectedFlow[0], stepName: selectedFlow[0].title, stepIndex: i1)
+        self.face2ViewModel = FaceValidationViewModel(currentType: selectedFlow[1], stepName: selectedFlow[1].title, stepIndex: i2)
+        self.face3ViewModel = FaceValidationViewModel(currentType: selectedFlow[2], stepName: selectedFlow[2].title, stepIndex: i3)
+
+        stepsViewModels[i1] = face1ViewModel!
+        stepsViewModels[i2] = face2ViewModel!
+        stepsViewModels[i3] = face3ViewModel!
     }
     
     @MainActor
