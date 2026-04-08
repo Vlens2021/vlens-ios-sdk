@@ -147,8 +147,13 @@ extension NationalIdFrontViewController {
             
             Task { @MainActor in
                 let session = captureSession
-                
+                let soundsEnabled = CachedData.shared.enableSounds
+
                 DispatchQueue.global(qos: .userInitiated).async {
+                    if !soundsEnabled {
+                        try? AVAudioSession.sharedInstance().setCategory(.playback, options: .mixWithOthers)
+                        try? AVAudioSession.sharedInstance().setActive(true)
+                    }
                     session?.startRunning()
                 }
             }

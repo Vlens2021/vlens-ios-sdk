@@ -40,9 +40,9 @@ class ValidationMainViewController: UIViewController {
     private var nationalIdBackValidationViewController       : NationalIdBackViewController             = .instance()
     private var idReviewViewController                       : IdReviewViewController                   = .instance()
     private let startFaceValidationViewController            : StartFaceValidationViewController        = .instance()
-    private let face1ValidationViewController                : FaceViewController                       = .instance()
-    private let face2ValidationViewController                : FaceViewController                       = .instance()
-    private let face3ValidationViewController                : FaceViewController                       = .instance()
+    private var face1ValidationViewController                : FaceViewController                       = .instance()
+    private var face2ValidationViewController                : FaceViewController                       = .instance()
+    private var face3ValidationViewController                : FaceViewController                       = .instance()
     
     private var currentChildViewController: UIViewController? = nil
 
@@ -74,7 +74,8 @@ class ValidationMainViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
+
+        lockOrientationToPortrait()
         initViews()
     }
     
@@ -184,6 +185,31 @@ class ValidationMainViewController: UIViewController {
         }
     }
     
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        return .portrait
+    }
+
+    override var shouldAutorotate: Bool {
+        return false
+    }
+
+    override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation {
+        return .portrait
+    }
+
+    private func lockOrientationToPortrait() {
+        if #available(iOS 16.0, *) {
+            let scene = view.window?.windowScene
+                ?? UIApplication.shared.connectedScenes
+                    .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
+            scene?.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait))
+            setNeedsUpdateOfSupportedInterfaceOrientations()
+        }
+        // Belt-and-suspenders: works on all iOS versions and handles the SwiftUI hosting case
+        UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
+        UIViewController.attemptRotationToDeviceOrientation()
+    }
+
     @IBAction func retryButtonAction(_ sender: Any) {
         Task {
             CachedData.shared.noOfRetries = max(CachedData.shared.noOfRetries - 1, 0)
@@ -252,9 +278,21 @@ extension ValidationMainViewController: ValidationMainViewControllerDelegate {
             nationalIdBackValidationViewController = .instance()
             idReviewViewController = .instance()
         }
+        // Always recreate face view controllers on retry to reset camera and processing state
+        // This is critical for liveness retry - old controllers have stale state (isProcessing = true)
+        recreateFaceViewControllers()
         loadingView.isHidden = true
         actionsView.isHidden = true
         initViewsForStep(stepNumber)
+    }
+    
+    /// Recreates all face view controller instances to ensure clean state on retry
+    private func recreateFaceViewControllers() {
+        // Create new instances of face view controllers
+        // This resets isProcessing, camera session, and all captured data
+        face1ValidationViewController = .instance()
+        face2ValidationViewController = .instance()
+        face3ValidationViewController = .instance()
     }
     
     func didCancel() {

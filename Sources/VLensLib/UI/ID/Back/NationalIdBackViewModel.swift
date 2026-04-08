@@ -57,35 +57,34 @@ class NationalIdBackViewModel {
     
     @MainActor
     private func checkIfErrorExists() {
-        // check if error exists in front response
-        guard let frontResponse = CachedData.shared.verifyBackResponse else {
+        // check if error exists in response
+        guard let response = CachedData.shared.verifyBackResponse else {
             self.errorMessage = "error".localized
             return
         }
-        if let errorMessage = frontResponse.errorMessage {
+        if let errorMessage = response.errorMessage {
             self.errorMessage = errorMessage
             return
         }
         
-        let fValidationErrors = frontResponse.services?.validations?.validationErrors ?? []
-        if !fValidationErrors.isEmpty {
-            self.errorMessage = fValidationErrors.first?.errors?.first?.message  ?? "error".localized
+        let validationErrors = response.services?.validations?.validationErrors ?? []
+        if !validationErrors.isEmpty {
+            self.errorMessage = validationErrors.first?.errors?.first?.message  ?? "error".localized
             return
         }
         
-        // check if error exists in back response
-        guard let backResponse = CachedData.shared.verifyBackResponse else {
-            self.errorMessage = "error".localized
-            return
-        }
-        if let errorMessage = backResponse.errorMessage {
-            self.errorMessage = errorMessage
+        // Validate required ID fields are present
+        // If idNumber is missing or empty, don't proceed to review screen
+        let idNumber = response.data?.idFrontData?.idNumber ?? response.data?.idBackData?.idNumber
+        if idNumber == nil || idNumber?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == true {
+            self.errorMessage = "id_number_not_found".localized
             return
         }
         
-        let bValidationErrors = backResponse.services?.validations?.validationErrors ?? []
-        if !bValidationErrors.isEmpty {
-            self.errorMessage = bValidationErrors.first?.errors?.first?.message  ?? "error".localized
+        // Check that at least name is present from front data
+        let name = response.data?.idFrontData?.name
+        if name == nil || name?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == true {
+            self.errorMessage = "id_data_incomplete".localized
             return
         }
     }

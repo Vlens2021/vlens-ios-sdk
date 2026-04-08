@@ -12,6 +12,8 @@
 "uploading_msg" = "Uploading...";
 "success" = "Success";
 "error" = "An error occurred while processing your request. Please try again later";
+"id_number_not_found" = "ID number could not be read. Please ensure the ID is clearly visible and try again.";
+"id_data_incomplete" = "Unable to read all required information from the ID. Please try again with better lighting.";
 "faild_to_capture_image" = "Failed to capture image.";
 "back_image_captured" = "Back image captured.";
 "front_image_captured" = "Front image captured.";

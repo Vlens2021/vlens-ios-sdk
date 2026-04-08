@@ -53,9 +53,16 @@ class NationalIdBackViewController: UIViewController {
         super.init(coder: coder)
     }
 
+    override func willMove(toParent parent: UIViewController?) {
+        super.willMove(toParent: parent)
+        if parent == nil {
+            captureSession?.stopRunning()
+        }
+    }
+
     public override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         flipCardImageView.image = UIImage.gifImageWithName("id_flip")
         
         // Set custom client logo if provided
@@ -198,8 +205,13 @@ extension NationalIdBackViewController {
             
             Task { @MainActor in
                 let session = captureSession
-                
+                let soundsEnabled = CachedData.shared.enableSounds
+
                 DispatchQueue.global(qos: .userInitiated).async {
+                    if !soundsEnabled {
+                        try? AVAudioSession.sharedInstance().setCategory(.playback, options: .mixWithOthers)
+                        try? AVAudioSession.sharedInstance().setActive(true)
+                    }
                     session?.startRunning()
                 }
             }

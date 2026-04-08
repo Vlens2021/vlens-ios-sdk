@@ -260,7 +260,19 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
     }
 
     public func updateUIViewController(_ uiViewController: VLensContainerViewController, context: Context) {
-        // No dynamic updates needed
+        CachedData.shared.transactionId             = transactionId
+        CachedData.shared.apiKey                    = apiKey
+        CachedData.shared.secretKey                 = secretKey
+        CachedData.shared.tenancyName               = tenancyName
+        CachedData.shared.language                  = language
+        CachedData.shared.accessToken               = accessToken
+        CachedData.shared.noOfRetries               = noOfRetries
+        CachedData.shared.allowAutoCapture          = allowAutoCapture
+        CachedData.shared.allowNonTrueDepthFallback = allowNonTrueDepthFallback
+        CachedData.shared.colors                    = colors
+        CachedData.shared.enableSounds              = enableSounds
+        CachedData.shared.clientLogoImage           = clientLogoImage
+        CachedData.shared.showIdReviewPage          = showIdReviewPage
     }
 
     // MARK: - Coordinator (VLensDelegate)
@@ -378,6 +390,36 @@ public class VLensContainerViewController: UIViewController {
     
     @objc private func closeButtonTapped() {
         onCloseButtonTapped?()
+    }
+
+    public override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        lockOrientationToPortrait()
+    }
+
+    public override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        return .portrait
+    }
+
+    public override var shouldAutorotate: Bool {
+        return false
+    }
+
+    public override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation {
+        return .portrait
+    }
+
+    private func lockOrientationToPortrait() {
+        if #available(iOS 16.0, *) {
+            let scene = view.window?.windowScene
+                ?? UIApplication.shared.connectedScenes
+                    .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
+            scene?.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait))
+            setNeedsUpdateOfSupportedInterfaceOrientations()
+        }
+        // Belt-and-suspenders: works on all iOS versions and handles the SwiftUI hosting case
+        UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
+        UIViewController.attemptRotationToDeviceOrientation()
     }
 }
 
