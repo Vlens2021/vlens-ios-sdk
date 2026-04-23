@@ -17,6 +17,7 @@
                 <outlet property="loadingMessageLabel" destination="sVw-RL-LM5" id="Rep-7L-Gwf"/>
                 <outlet property="loadingView" destination="Qt7-id-8mP" id="gVx-ql-iYT"/>
                 <outlet property="logoImageView" destination="nl5-bB-rMQ" id="dEF-gh-iJK"/>
+                <outlet property="closeButton" destination="svJ-Rc-EZ9" id="nN9-oO-pP0"/>
                 <outlet property="retryButton" destination="fud-KX-BEn" id="4Xb-jv-D0I"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
             </connections>

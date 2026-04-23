@@ -17,7 +17,9 @@ class StartNationalIdValidationViewController: UIViewController {
     var delegate: ValidationMainViewControllerDelegate? = nil
     
     @IBOutlet weak var logoImageView: UIImageView?
-    
+    @IBOutlet weak var titleLabel: UILabel!
+    @IBOutlet weak var scanButton: UIButton!
+
     public init() {
         super.init(nibName: "StartNationalIdValidationViewController", bundle: .module)
     }
@@ -30,7 +32,9 @@ class StartNationalIdValidationViewController: UIViewController {
         super.viewDidLoad()
         let colors = CachedData.shared.colors.current(for: traitCollection)
         view.backgroundColor = colors.backgroundColor
-        
+        titleLabel.textColor = colors.primaryColor
+        scanButton.backgroundColor = colors.accentColor
+
         // Set custom client logo if provided
         if let clientLogo = CachedData.shared.clientLogoImage {
             logoImageView?.image = clientLogo

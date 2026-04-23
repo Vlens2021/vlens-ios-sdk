@@ -25,9 +25,15 @@ class StartFaceValidationViewController: UIViewController {
     var delegate: ValidationMainViewControllerDelegate? = nil
     
     @IBOutlet weak var logoImageView: UIImageView?
+    @IBOutlet weak var titleLabel: UILabel!
+    @IBOutlet weak var startButton: UIButton!
 
     public override func viewDidLoad() {
         super.viewDidLoad()
+        let colors = CachedData.shared.colors.current(for: traitCollection)
+        view.backgroundColor = colors.backgroundColor
+        titleLabel.textColor = colors.primaryColor
+        startButton.backgroundColor = colors.accentColor
 
         // Set custom client logo if provided
         if let clientLogo = CachedData.shared.clientLogoImage {

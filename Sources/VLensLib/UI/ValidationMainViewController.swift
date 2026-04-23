@@ -32,6 +32,7 @@ class ValidationMainViewController: UIViewController {
     
     @IBOutlet weak var actionsView: UIStackView!
     @IBOutlet weak var retryButton: UIButton!
+    @IBOutlet weak var closeButton: UIButton!
     
     var delegate: VLensDelegate? = nil
     
@@ -60,7 +61,13 @@ class ValidationMainViewController: UIViewController {
         super.viewDidLoad()
         let colors = CachedData.shared.colors.current(for: traitCollection)
         view.backgroundColor = colors.backgroundColor
-        
+
+        if var retryConfig = retryButton.configuration {
+            retryConfig.baseBackgroundColor = colors.accentColor
+            retryButton.configuration = retryConfig
+        }
+        closeButton.tintColor = colors.primaryColor
+
         // Set custom client logo if provided
         if let clientLogo = CachedData.shared.clientLogoImage {
             logoImageView?.image = clientLogo
