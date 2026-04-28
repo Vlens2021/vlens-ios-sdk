@@ -2,7 +2,7 @@ import Foundation
 
 struct LoginService {
 
-    static let apiKey = "Nb1-JpHQjKpnkOumA_b-IsjW4xtBDuLi6u88rFgIL8M"
+    static let apiKey = "8iMtUwpr6TrvcXZtrJNC0XDiocB9KJ1T0QXkdWsS1o"
     static let tenancyName = "Default"
 
     static func login() async throws -> String {
@@ -19,7 +19,7 @@ struct LoginService {
         let body: [String: Any] = [
             "geoLocation": [
                 "latitude": "30",
-                "longitude": "30"
+                "longitude": 30
             ],
             "imei": "test",
             "phoneNumber": "+201118997269",

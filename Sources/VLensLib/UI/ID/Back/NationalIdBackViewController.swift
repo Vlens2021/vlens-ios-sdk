@@ -76,14 +76,22 @@ class NationalIdBackViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
+
+        isProcessing = true
+
+        if captureSession?.isRunning == false {
+            DispatchQueue.global(qos: .userInitiated).async {
+                self.captureSession?.startRunning()
+            }
+        }
+
         isAutoCapturing = CachedData.shared.allowAutoCapture
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 7) {
             self.isAutoCapturing = false
             self.captureButtonView.isHidden = false
         }
-        
+
         captureButtonView.isHidden = true
         loadingView.isHidden = true
         actionsView.isHidden = true
@@ -91,17 +99,17 @@ class NationalIdBackViewController: UIViewController {
         flipCardImageView.contentMode = .scaleAspectFit
         flipCardImageView.isHidden = false
         cardPreviewImageView.isHidden = true
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             self.flipCardImageView.isHidden = true
             self.cardPreviewImageView.isHidden = false
             self.captureButtonView.isHidden = self.isAutoCapturing
         }
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
             self.isProcessing = false
         }
-        
+
     }
 
     override func viewDidLayoutSubviews() {
@@ -284,9 +292,10 @@ extension NationalIdBackViewController: AVCapturePhotoCaptureDelegate {
         debugPrint("✅ Photo captured")
         
         Task { @MainActor in
+            captureSession?.stopRunning()
             didCaptureImage(image)
         }
-        
+
     }
 }
 
