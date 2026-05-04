@@ -24,7 +24,19 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
 
 
 extension UIImage {
-    
+
+    /// Applies a color on top of the image using CGBlendMode.sourceAtop.
+    /// Equivalent to Flutter's ColorFilter.mode(color, BlendMode.srcATop).
+    func tinted(with color: UIColor) -> UIImage {
+        let renderer = UIGraphicsImageRenderer(size: size)
+        return renderer.image { ctx in
+            draw(at: .zero)
+            ctx.cgContext.setBlendMode(.sourceAtop)
+            color.setFill()
+            ctx.cgContext.fill(CGRect(origin: .zero, size: size))
+        }
+    }
+
     public class func gifImageWithData(_ data: Data) -> UIImage? {
         guard let source = CGImageSourceCreateWithData(data as CFData, nil) else {
             debugPrint("image doesn't exist")

@@ -18,6 +18,7 @@
                 <outlet property="cardOverlayView" destination="Pqr-AQ-hq8" id="9S0-0K-GL6"/>
                 <outlet property="cardPreviewImageView" destination="Pqr-AQ-hq8" id="3Hf-EH-F2L"/>
                 <outlet property="flipCardImageView" destination="dMN-Z0-cvH" id="EZR-u7-Hu5"/>
+                <outlet property="loadingTitleLabel" destination="Pnq-Eb-5N5" id="sT1-uU-vV2"/>
                 <outlet property="loadingMessageLabel" destination="zj2-YN-65K" id="igS-Oy-Msl"/>
                 <outlet property="loadingStatusImageView" destination="m1e-I8-Oei" id="rmz-FN-xWL"/>
                 <outlet property="loadingView" destination="MYV-q2-SZE" id="oef-9e-idW"/>

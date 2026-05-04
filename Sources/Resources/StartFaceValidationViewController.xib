@@ -10,6 +10,7 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="StartFaceValidationViewController" customModuleProvider="target">
             <connections>
+                <outlet property="faceVectorImageView" destination="4Vl-r5-9uV" id="oP8-qQ-rR9"/>
                 <outlet property="logoImageView" destination="XhL-aL-ePM" id="bCD-ef-gHI"/>
                 <outlet property="startButton" destination="pzn-zx-qZH" id="gH5-iI-jJ6"/>
                 <outlet property="titleLabel" destination="TUg-y8-HGU" id="kK7-lL-mM8"/>

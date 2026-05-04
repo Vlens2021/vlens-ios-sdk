@@ -14,6 +14,7 @@
                 <outlet property="actionsView" destination="tE6-EL-y34" id="eaB-7I-QQF"/>
                 <outlet property="containerView" destination="bef-0q-P3k" id="cR5-ra-QlG"/>
                 <outlet property="loadingImageView" destination="sxp-4H-Wj6" id="EIG-cQ-cZg"/>
+                <outlet property="loadingTitleLabel" destination="N10-rq-8R0" id="wX3-yY-zZ4"/>
                 <outlet property="loadingMessageLabel" destination="sVw-RL-LM5" id="Rep-7L-Gwf"/>
                 <outlet property="loadingView" destination="Qt7-id-8mP" id="gVx-ql-iYT"/>
                 <outlet property="logoImageView" destination="nl5-bB-rMQ" id="dEF-gh-iJK"/>

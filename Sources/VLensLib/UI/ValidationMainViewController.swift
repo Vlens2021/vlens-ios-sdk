@@ -27,7 +27,7 @@ class ValidationMainViewController: UIViewController {
     @IBOutlet weak var loadingView: UIView!
     @IBOutlet weak var loadingImageView: UIImageView!
     @IBOutlet weak var logoImageView: UIImageView?
-//    @IBOutlet weak var loadingTitleLabel: UILabel!
+    @IBOutlet weak var loadingTitleLabel: UILabel!
     @IBOutlet weak var loadingMessageLabel: UILabel!
     
     @IBOutlet weak var actionsView: UIStackView!
@@ -61,6 +61,7 @@ class ValidationMainViewController: UIViewController {
         super.viewDidLoad()
         let colors = CachedData.shared.colors.current(for: traitCollection)
         view.backgroundColor = colors.backgroundColor
+        loadingTitleLabel.textColor = colors.primaryColor
 
         if var retryConfig = retryButton.configuration {
             retryConfig.baseBackgroundColor = colors.accentColor
@@ -93,6 +94,27 @@ class ValidationMainViewController: UIViewController {
         loadingImageView.image = UIImage.gifImageWithName("person_scan_final")
         actionsView.isHidden = true
         loadingMessageLabel.text = "processing_your_id".localized
+        addGifBackground(to: loadingImageView)
+    }
+
+    private func addGifBackground(to imageView: UIImageView) {
+        guard let bgImage = UIImage(named: "gif_background", in: .module, compatibleWith: nil) else { return }
+        let colors = CachedData.shared.colors.current(for: traitCollection)
+        let tintedBg = bgImage.tinted(with: colors.accentColor)
+
+        let bgView = UIImageView(image: tintedBg)
+        bgView.contentMode = .scaleAspectFill
+        bgView.clipsToBounds = true
+        bgView.translatesAutoresizingMaskIntoConstraints = false
+
+        guard let parent = imageView.superview else { return }
+        parent.insertSubview(bgView, belowSubview: imageView)
+        NSLayoutConstraint.activate([
+            bgView.centerXAnchor.constraint(equalTo: imageView.centerXAnchor),
+            bgView.centerYAnchor.constraint(equalTo: imageView.centerYAnchor),
+            bgView.widthAnchor.constraint(equalToConstant: 243),
+            bgView.heightAnchor.constraint(equalToConstant: 243)
+        ])
     }
     
     private func initViewsForStep(_ index: Int = 0) {

@@ -24,6 +24,7 @@ class NationalIdBackViewController: UIViewController {
     @IBOutlet weak var logoImageView: UIImageView?
     
     @IBOutlet weak var loadingView: UIView!
+    @IBOutlet weak var loadingTitleLabel: UILabel!
     @IBOutlet weak var loadingStatusImageView: UIImageView!
     @IBOutlet weak var loadingMessageLabel: UILabel!
     
@@ -63,14 +64,18 @@ class NationalIdBackViewController: UIViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
 
+        let colors = CachedData.shared.colors.current(for: traitCollection)
+        loadingTitleLabel.textColor = colors.primaryColor
+
         flipCardImageView.image = UIImage.gifImageWithName("id_flip")
-        
+
         // Set custom client logo if provided
         if let clientLogo = CachedData.shared.clientLogoImage {
             logoImageView?.image = clientLogo
             logoImageView?.contentMode = .scaleAspectFit
         }
-        
+
+        addGifBackground(to: loadingStatusImageView)
         setupCamera()
     }
     
@@ -147,6 +152,26 @@ class NationalIdBackViewController: UIViewController {
         capturePhoto()
     }
     
+    private func addGifBackground(to imageView: UIImageView) {
+        guard let bgImage = UIImage(named: "gif_background", in: .module, compatibleWith: nil) else { return }
+        let colors = CachedData.shared.colors.current(for: traitCollection)
+        let tintedBg = bgImage.tinted(with: colors.accentColor)
+
+        let bgView = UIImageView(image: tintedBg)
+        bgView.contentMode = .scaleAspectFill
+        bgView.clipsToBounds = true
+        bgView.translatesAutoresizingMaskIntoConstraints = false
+
+        guard let parent = imageView.superview else { return }
+        parent.insertSubview(bgView, belowSubview: imageView)
+        NSLayoutConstraint.activate([
+            bgView.centerXAnchor.constraint(equalTo: imageView.centerXAnchor),
+            bgView.centerYAnchor.constraint(equalTo: imageView.centerYAnchor),
+            bgView.widthAnchor.constraint(equalToConstant: 243),
+            bgView.heightAnchor.constraint(equalToConstant: 243)
+        ])
+    }
+
     private func didCaptureImage(_ image: UIImage) {
         Task {
             loadingView.isHidden = false
