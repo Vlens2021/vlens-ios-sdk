@@ -16,6 +16,8 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>NFCReaderUsageDescription</key>
+	<string>VLens requires NFC access to read your passport chip for secure identity verification.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>VLens requires camera access for ID scanning and liveness verification.</string>
 	<key>NSMicrophoneUsageDescription</key>

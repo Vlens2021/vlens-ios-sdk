@@ -65,3 +65,19 @@
 "continue_button" = "Continue";
 "verified" = "Digital Identity Verified";
 "pending_verification" = "Pending Verification";
+
+/* Passport NFC */
+"nfc_scan_title" = "Scan Passport Chip";
+"nfc_scan_subtitle" = "We will read the electronic chip in your passport for secure verification.";
+"nfc_scanning" = "Scanning...";
+"nfc_scanning_tip" = "Hold your phone flat against the passport cover near the chip symbol.";
+"nfc_verifying" = "Verifying Passport";
+"nfc_verified" = "Passport Verified";
+"nfc_verified_subtitle" = "Your passport chip was read and verified successfully.";
+"nfc_failed" = "Scan Failed";
+"nfc_start" = "Start Scanning";
+"nfc_retry" = "Try Again";
+
+/* Passport OCR */
+"passport_ocr_title" = "Scan Passport";
+"passport_ocr_instruction" = "Place your passport open to the photo page.\nAlign the MRZ zone at the bottom inside the frame.";

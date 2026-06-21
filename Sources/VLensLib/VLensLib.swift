@@ -68,10 +68,21 @@ public class VLensManager {
         CachedData.shared.customErrorMessages = messages
     }
 
-    public func present(on viewController: UIViewController, withLivenessOnly: Bool = false) {
-        debugPrint("Vlens presented :D")
-        
-        let validationViewController = ValidationMainViewController.instance(withLivenessOnly: withLivenessOnly)
+    /// Configures passport MRZ data for the NFC scan step.
+    /// Dates must be in YYMMDD format (e.g. dateOfBirth: "940928", expiryDate: "290305").
+    public func setPassportData(documentNumber: String, dateOfBirth: String, expiryDate: String) {
+        CachedData.shared.passportDocumentNumber = documentNumber
+        CachedData.shared.passportDateOfBirth    = dateOfBirth
+        CachedData.shared.passportExpiryDate     = expiryDate
+    }
+
+    public func present(on viewController: UIViewController, withLivenessOnly: Bool = false, withPassport: Bool = false) {
+        CachedData.shared.isPassport = withPassport
+
+        let validationViewController = ValidationMainViewController.instance(
+            withLivenessOnly: withLivenessOnly,
+            withPassport: withPassport
+        )
         validationViewController.delegate = delegate
         validationViewController.modalPresentationStyle = .fullScreen
         viewController.present(validationViewController, animated: true)

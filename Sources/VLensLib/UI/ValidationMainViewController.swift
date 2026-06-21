@@ -17,9 +17,10 @@ protocol ValidationMainViewControllerDelegate {
 
 class ValidationMainViewController: UIViewController {
 
-    static func instance(withLivenessOnly: Bool) -> ValidationMainViewController {
+    static func instance(withLivenessOnly: Bool, withPassport: Bool = false) -> ValidationMainViewController {
         let viewController = ValidationMainViewController()
         viewController.viewModel.withLivenessOnly = withLivenessOnly
+        viewController.viewModel.withPassport     = withPassport
         return viewController
     }
     
@@ -44,6 +45,8 @@ class ValidationMainViewController: UIViewController {
     private var face1ValidationViewController                : FaceViewController                       = .instance()
     private var face2ValidationViewController                : FaceViewController                       = .instance()
     private var face3ValidationViewController                : FaceViewController                       = .instance()
+    private var nfcScanViewController                        : NfcScanViewController                    = .instance()
+    private var passportOcrViewController                    : PassportOcrViewController                = .instance()
     
     private var currentChildViewController: UIViewController? = nil
     private var isPostingLiveness = false
@@ -160,7 +163,17 @@ class ValidationMainViewController: UIViewController {
                 face3ValidationViewController.viewModel = stepItemViewModel as? FaceValidationViewModel
                 switchToViewController(face3ValidationViewController)
             }
-            
+
+        case is PassportOcrViewModel:
+            passportOcrViewController = .instance()
+            passportOcrViewController.delegate = self
+            switchToViewController(passportOcrViewController)
+
+        case is NfcScanViewModel:
+            nfcScanViewController = .instance()
+            nfcScanViewController.delegate = self
+            switchToViewController(nfcScanViewController)
+
         default:
             break
         }
@@ -208,7 +221,17 @@ class ValidationMainViewController: UIViewController {
 
     private func closeSdkWithResult(errorMessage: String? = nil) {
         self.dismiss(animated: true) { [self] in
-            if (viewModel.isDigitalIdentityVerified) {
+            if CachedData.shared.isPassport {
+                let nfc = CachedData.shared.nfcVerifyResponse
+                if nfc?.isValid == true {
+                    delegate?.didValidateSuccessfully(transactionId: CachedData.shared.transactionId, userData: nil)
+                } else {
+                    let reason = nfc?.failureReason ?? errorMessage ?? "NFC verification failed"
+                    delegate?.didFailToValidate(transactionId: CachedData.shared.transactionId, error: reason)
+                }
+                return
+            }
+            if viewModel.isDigitalIdentityVerified {
                 delegate?.didValidateSuccessfully(transactionId: CachedData.shared.transactionId, userData: CachedData.shared.verifyBackResponse?.data)
             } else {
                 delegate?.didFailToValidate(transactionId: CachedData.shared.transactionId, error: errorMessage ?? "div_failed".localized)
@@ -285,6 +308,10 @@ extension ValidationMainViewController: ValidationMainViewControllerDelegate {
         let numOfSteps = viewModel.stepsViewModels.count
 
         if stepNumber + 1 == numOfSteps {
+            if CachedData.shared.isPassport {
+                closeSdkWithResult()
+                return
+            }
             guard !isPostingLiveness else { return }
             isPostingLiveness = true
 

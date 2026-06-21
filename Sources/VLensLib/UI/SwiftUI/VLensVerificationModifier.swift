@@ -19,8 +19,13 @@ struct VLensVerificationModifier: ViewModifier {
     let apiKey: String
     let secretKey: String
     let tenancyName: String
+    let apiBaseUrl: String
     let language: String
     let withLivenessOnly: Bool
+    let withPassport: Bool
+    let passportDocumentNumber: String
+    let passportDateOfBirth: String
+    let passportExpiryDate: String
     let accessToken: String
     let noOfRetries: Int
     let allowAutoCapture: Bool
@@ -43,8 +48,13 @@ struct VLensVerificationModifier: ViewModifier {
                     apiKey: apiKey,
                     secretKey: secretKey,
                     tenancyName: tenancyName,
+                    apiBaseUrl: apiBaseUrl,
                     language: language,
                     withLivenessOnly: withLivenessOnly,
+                    withPassport: withPassport,
+                    passportDocumentNumber: passportDocumentNumber,
+                    passportDateOfBirth: passportDateOfBirth,
+                    passportExpiryDate: passportExpiryDate,
                     accessToken: accessToken,
                     noOfRetries: noOfRetries,
                     allowAutoCapture: allowAutoCapture,
@@ -145,8 +155,13 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
     public let apiKey: String
     public let secretKey: String
     public let tenancyName: String
+    public let apiBaseUrl: String
     public let language: String
     public let withLivenessOnly: Bool
+    public let withPassport: Bool
+    public let passportDocumentNumber: String
+    public let passportDateOfBirth: String
+    public let passportExpiryDate: String
     public let accessToken: String
     public let noOfRetries: Int
     public let allowAutoCapture: Bool
@@ -187,8 +202,13 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
         apiKey: String,
         secretKey: String,
         tenancyName: String,
+        apiBaseUrl: String = "https://api.vlenseg.com",
         language: String = "en",
         withLivenessOnly: Bool = false,
+        withPassport: Bool = false,
+        passportDocumentNumber: String = "",
+        passportDateOfBirth: String = "",
+        passportExpiryDate: String = "",
         accessToken: String,
         noOfRetries: Int = 5,
         allowAutoCapture: Bool = true,
@@ -207,8 +227,13 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
         self.apiKey = apiKey
         self.secretKey = secretKey
         self.tenancyName = tenancyName
+        self.apiBaseUrl = apiBaseUrl
         self.language = language
         self.withLivenessOnly = withLivenessOnly
+        self.withPassport = withPassport
+        self.passportDocumentNumber = passportDocumentNumber
+        self.passportDateOfBirth = passportDateOfBirth
+        self.passportExpiryDate = passportExpiryDate
         self.accessToken = accessToken
         self.noOfRetries = noOfRetries
         self.allowAutoCapture = allowAutoCapture
@@ -240,18 +265,25 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
         CachedData.shared.apiKey            = apiKey
         CachedData.shared.secretKey         = secretKey
         CachedData.shared.tenancyName       = tenancyName
+        CachedData.shared.apiBaseUrl        = apiBaseUrl
         CachedData.shared.language          = language
         CachedData.shared.accessToken       = accessToken
         CachedData.shared.noOfRetries       = noOfRetries
         CachedData.shared.allowAutoCapture  = allowAutoCapture
         CachedData.shared.allowNonTrueDepthFallback = allowNonTrueDepthFallback
         CachedData.shared.colors            = colors
-        CachedData.shared.enableSounds      = enableSounds
-        CachedData.shared.clientLogoImage   = clientLogoImage
-        CachedData.shared.showIdReviewPage      = showIdReviewPage
-        CachedData.shared.customErrorMessages   = customErrorMessages
+        CachedData.shared.enableSounds              = enableSounds
+        CachedData.shared.clientLogoImage           = clientLogoImage
+        CachedData.shared.showIdReviewPage          = showIdReviewPage
+        CachedData.shared.customErrorMessages       = customErrorMessages
+        CachedData.shared.isPassport                = withPassport
+        if withPassport {
+            CachedData.shared.passportDocumentNumber = passportDocumentNumber
+            CachedData.shared.passportDateOfBirth    = passportDateOfBirth
+            CachedData.shared.passportExpiryDate     = passportExpiryDate
+        }
 
-        let validationVC = ValidationMainViewController.instance(withLivenessOnly: withLivenessOnly)
+        let validationVC = ValidationMainViewController.instance(withLivenessOnly: withLivenessOnly, withPassport: withPassport)
         validationVC.delegate = context.coordinator
         
         let coordinator = context.coordinator
@@ -270,6 +302,7 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
         CachedData.shared.apiKey                    = apiKey
         CachedData.shared.secretKey                 = secretKey
         CachedData.shared.tenancyName               = tenancyName
+        CachedData.shared.apiBaseUrl                = apiBaseUrl
         CachedData.shared.language                  = language
         CachedData.shared.accessToken               = accessToken
         CachedData.shared.noOfRetries               = noOfRetries
@@ -280,6 +313,12 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
         CachedData.shared.clientLogoImage           = clientLogoImage
         CachedData.shared.showIdReviewPage          = showIdReviewPage
         CachedData.shared.customErrorMessages       = customErrorMessages
+        CachedData.shared.isPassport                = withPassport
+        if withPassport {
+            CachedData.shared.passportDocumentNumber = passportDocumentNumber
+            CachedData.shared.passportDateOfBirth    = passportDateOfBirth
+            CachedData.shared.passportExpiryDate     = passportExpiryDate
+        }
     }
 
     // MARK: - Coordinator (VLensDelegate)
@@ -498,8 +537,13 @@ public extension View {
         apiKey: String,
         secretKey: String,
         tenancyName: String,
+        apiBaseUrl: String = "https://api.vlenseg.com",
         language: String = "en",
         withLivenessOnly: Bool = false,
+        withPassport: Bool = false,
+        passportDocumentNumber: String = "",
+        passportDateOfBirth: String = "",
+        passportExpiryDate: String = "",
         accessToken: String,
         noOfRetries: Int = 5,
         allowAutoCapture: Bool = true,
@@ -521,8 +565,13 @@ public extension View {
                 apiKey: apiKey,
                 secretKey: secretKey,
                 tenancyName: tenancyName,
+                apiBaseUrl: apiBaseUrl,
                 language: language,
                 withLivenessOnly: withLivenessOnly,
+                withPassport: withPassport,
+                passportDocumentNumber: passportDocumentNumber,
+                passportDateOfBirth: passportDateOfBirth,
+                passportExpiryDate: passportExpiryDate,
                 accessToken: accessToken,
                 noOfRetries: noOfRetries,
                 allowAutoCapture: allowAutoCapture,
