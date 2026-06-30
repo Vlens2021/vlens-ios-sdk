@@ -6,24 +6,16 @@
 //
 
 
-class SdkErrors {
-    
-    var apiErrors: [ApiError]
-    
-    init(apiErrors: [ApiError] = defaultApiErrors) {
-        self.apiErrors = apiErrors
-    }
-    
-    func get(by code: Int) -> String? {
-        let apiError = apiErrors.first(where: { $0.errorCode == code })
-        return apiError?.errorMessageEn
-    }
-}
+public struct ApiError {
+    public let errorCode: Int
+    public let errorMessageEn: String
+    public let errorMessageAr: String
 
-struct ApiError {
-    let errorCode: Int
-    let errorMessageEn: String
-    let errorMessageAr: String
+    public init(errorCode: Int, errorMessageEn: String, errorMessageAr: String) {
+        self.errorCode = errorCode
+        self.errorMessageEn = errorMessageEn
+        self.errorMessageAr = errorMessageAr
+    }
 }
 
 
@@ -65,6 +57,11 @@ let defaultApiErrors: [ApiError] = [
     ApiError(errorCode: 7006, errorMessageEn: "A general error occurred while processing the passport.", errorMessageAr: "حدث خطأ عام أثناء معالجة جواز السفر."),
 ]
 
-func getApiErrorMessage(_ errorCode: Int) -> String {
-    return defaultApiErrors.first { $0.errorCode == errorCode }?.errorMessageEn ?? "Unknown error occurred."
+// Resolves an error code to a message: custom overrides first, then defaults, then fallback.
+// Must be called on the main actor since it reads CachedData.
+@MainActor
+func resolveApiError(code: Int?, fallback: String) -> String {
+    guard let code else { return fallback }
+    let all = CachedData.shared.customErrorMessages + defaultApiErrors
+    return all.first(where: { $0.errorCode == code })?.errorMessageEn ?? fallback
 }

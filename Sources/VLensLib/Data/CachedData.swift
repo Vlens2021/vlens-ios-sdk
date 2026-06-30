@@ -25,6 +25,9 @@ class CachedData {
     var allowNonTrueDepthFallback : Bool = false
     var colors           : VLensColors = .default
     
+    // MARK: - Custom Error Messages
+    var customErrorMessages: [ApiError] = []
+
     // MARK: - Sound Control
     /// When true, SDK sounds are enabled. When false, all sounds are muted.
     var enableSounds     : Bool     = true

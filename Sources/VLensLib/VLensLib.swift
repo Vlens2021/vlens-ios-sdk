@@ -13,18 +13,19 @@ public protocol VLensDelegate: AnyObject {
 @MainActor
 public class VLensManager {
     
-    public init(transactionId: String, apiKey: String, secretKey: String, tenancyName: String, language: String = "en", noOfRetries: Int = 5, allowAutoCapture: Bool = true, colors: VLensColors = .default, enableSounds: Bool = true, clientLogoImage: UIImage? = nil, showIdReviewPage: Bool = true) {
-        CachedData.shared.transactionId     = transactionId
-        CachedData.shared.apiKey            = apiKey
-        CachedData.shared.secretKey         = secretKey
-        CachedData.shared.tenancyName       = tenancyName
-        CachedData.shared.language          = language
-        CachedData.shared.noOfRetries       = noOfRetries
-        CachedData.shared.allowAutoCapture  = allowAutoCapture
-        CachedData.shared.colors            = colors
-        CachedData.shared.enableSounds      = enableSounds
-        CachedData.shared.clientLogoImage   = clientLogoImage
-        CachedData.shared.showIdReviewPage  = showIdReviewPage
+    public init(transactionId: String, apiKey: String, secretKey: String, tenancyName: String, language: String = "en", noOfRetries: Int = 5, allowAutoCapture: Bool = true, colors: VLensColors = .default, enableSounds: Bool = true, clientLogoImage: UIImage? = nil, showIdReviewPage: Bool = true, customErrorMessages: [ApiError] = []) {
+        CachedData.shared.transactionId         = transactionId
+        CachedData.shared.apiKey                = apiKey
+        CachedData.shared.secretKey             = secretKey
+        CachedData.shared.tenancyName           = tenancyName
+        CachedData.shared.language              = language
+        CachedData.shared.noOfRetries           = noOfRetries
+        CachedData.shared.allowAutoCapture      = allowAutoCapture
+        CachedData.shared.colors                = colors
+        CachedData.shared.enableSounds          = enableSounds
+        CachedData.shared.clientLogoImage       = clientLogoImage
+        CachedData.shared.showIdReviewPage      = showIdReviewPage
+        CachedData.shared.customErrorMessages   = customErrorMessages
     }
     
     public weak var delegate: VLensDelegate? = nil
@@ -60,7 +61,13 @@ public class VLensManager {
     public func setAccessToken(_ accessToken: String) {
         CachedData.shared.accessToken = accessToken
     }
-    
+
+    /// Overrides SDK error messages for specific error codes.
+    /// Custom entries take priority over the built-in defaults.
+    public func setCustomErrorMessages(_ messages: [ApiError]) {
+        CachedData.shared.customErrorMessages = messages
+    }
+
     public func present(on viewController: UIViewController, withLivenessOnly: Bool = false) {
         debugPrint("Vlens presented :D")
         

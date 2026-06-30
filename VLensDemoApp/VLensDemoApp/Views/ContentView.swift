@@ -129,6 +129,7 @@ struct ContentView: View {
                 button("Get Started With Liveness Only") { startVLens(livenessOnly: true) }
                     .disabled(accessToken.isEmpty)
                     .opacity(accessToken.isEmpty ? 0.5 : 1)
+
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 24)
@@ -213,6 +214,7 @@ struct ContentView: View {
         isLivenessOnly = livenessOnly
         showVLens = true
     }
+
 }
 
 #Preview {

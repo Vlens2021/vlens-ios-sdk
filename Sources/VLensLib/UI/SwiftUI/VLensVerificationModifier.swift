@@ -30,6 +30,7 @@ struct VLensVerificationModifier: ViewModifier {
     let enableSounds: Bool
     let clientLogoImage: UIImage?
     let showIdReviewPage: Bool
+    let customErrorMessages: [ApiError]
     let onSuccess: (String, VerifyIdBackPost.DataClass?) -> Void
     let onFailure: (String, String) -> Void
     let onDismiss: (() -> Void)?
@@ -53,6 +54,7 @@ struct VLensVerificationModifier: ViewModifier {
                     enableSounds: enableSounds,
                     clientLogoImage: clientLogoImage,
                     showIdReviewPage: showIdReviewPage,
+                    customErrorMessages: customErrorMessages,
                     onSuccess: { txnId, userData in
                         isPresented = false
                         onSuccess(txnId, userData)
@@ -154,6 +156,7 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
     public let enableSounds: Bool
     public let clientLogoImage: UIImage?
     public let showIdReviewPage: Bool
+    public let customErrorMessages: [ApiError]
     let onSuccess: @MainActor @Sendable (String, VerifyIdBackPost.DataClass?) -> Void
     let onFailure: @MainActor @Sendable (String, String) -> Void
     let onDismiss: (@MainActor @Sendable () -> Void)?
@@ -195,6 +198,7 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
         enableSounds: Bool = true,
         clientLogoImage: UIImage? = nil,
         showIdReviewPage: Bool = true,
+        customErrorMessages: [ApiError] = [],
         onSuccess: @escaping @MainActor @Sendable (String, VerifyIdBackPost.DataClass?) -> Void,
         onFailure: @escaping @MainActor @Sendable (String, String) -> Void,
         onDismiss: (@MainActor @Sendable () -> Void)? = nil
@@ -214,6 +218,7 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
         self.enableSounds = enableSounds
         self.clientLogoImage = clientLogoImage
         self.showIdReviewPage = showIdReviewPage
+        self.customErrorMessages = customErrorMessages
         self.onSuccess = onSuccess
         self.onFailure = onFailure
         self.onDismiss = onDismiss
@@ -243,7 +248,8 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
         CachedData.shared.colors            = colors
         CachedData.shared.enableSounds      = enableSounds
         CachedData.shared.clientLogoImage   = clientLogoImage
-        CachedData.shared.showIdReviewPage  = showIdReviewPage
+        CachedData.shared.showIdReviewPage      = showIdReviewPage
+        CachedData.shared.customErrorMessages   = customErrorMessages
 
         let validationVC = ValidationMainViewController.instance(withLivenessOnly: withLivenessOnly)
         validationVC.delegate = context.coordinator
@@ -273,6 +279,7 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
         CachedData.shared.enableSounds              = enableSounds
         CachedData.shared.clientLogoImage           = clientLogoImage
         CachedData.shared.showIdReviewPage          = showIdReviewPage
+        CachedData.shared.customErrorMessages       = customErrorMessages
     }
 
     // MARK: - Coordinator (VLensDelegate)
@@ -502,6 +509,7 @@ public extension View {
         enableSounds: Bool = true,
         clientLogoImage: UIImage? = nil,
         showIdReviewPage: Bool = true,
+        customErrorMessages: [ApiError] = [],
         onSuccess: @escaping (String, VerifyIdBackPost.DataClass?) -> Void,
         onFailure: @escaping (String, String) -> Void,
         onDismiss: (() -> Void)? = nil
@@ -524,6 +532,7 @@ public extension View {
                 enableSounds: enableSounds,
                 clientLogoImage: clientLogoImage,
                 showIdReviewPage: showIdReviewPage,
+                customErrorMessages: customErrorMessages,
                 onSuccess: onSuccess,
                 onFailure: onFailure,
                 onDismiss: onDismiss

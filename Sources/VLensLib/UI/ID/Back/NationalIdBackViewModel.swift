@@ -43,15 +43,6 @@ class NationalIdBackViewModel {
         .value
         
         CachedData.shared.verifyBackResponse = response
-//        if let errorMessage = response.errorMessage {
-//            self.errorMessage = errorMessage
-//        }
-//        
-//        let validationErrors = response.services?.validations?.validationErrors ?? []
-//        if !validationErrors.isEmpty {
-//            self.errorMessage = validationErrors.first?.errors?.first?.message  ?? "error".localized
-//        }
-        
         checkIfErrorExists()
     }
     
@@ -62,14 +53,21 @@ class NationalIdBackViewModel {
             self.errorMessage = "error".localized
             return
         }
-        if let errorMessage = response.errorMessage {
-            self.errorMessage = errorMessage
+        if response.errorCode != nil || response.errorMessage != nil {
+            self.errorMessage = resolveApiError(
+                code: response.errorCode,
+                fallback: response.errorMessage ?? "error".localized
+            )
             return
         }
-        
+
         let validationErrors = response.services?.validations?.validationErrors ?? []
         if !validationErrors.isEmpty {
-            self.errorMessage = validationErrors.first?.errors?.first?.message  ?? "error".localized
+            let firstError = validationErrors.first?.errors?.first
+            self.errorMessage = resolveApiError(
+                code: firstError?.code,
+                fallback: firstError?.message ?? "error".localized
+            )
             return
         }
         

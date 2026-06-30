@@ -150,13 +150,21 @@ class ValidationMainViewModel {
         
         CachedData.shared.livenessResponse = response
         isDigitalIdentityVerified = response.data?.isDigitalIdentityVerified ?? false
-        if let errorMessage = response.errorMessage {
-            self.validationErrorMessage = errorMessage
+
+        if response.errorCode != nil || response.errorMessage != nil {
+            self.validationErrorMessage = resolveApiError(
+                code: response.errorCode,
+                fallback: response.errorMessage ?? "error".localized
+            )
         }
-        
+
         let validationErrors = response.services?.validations?.validationErrors ?? []
         if !validationErrors.isEmpty {
-            self.validationErrorMessage = validationErrors.first?.errors?.first?.message  ?? "error".localized
+            let firstError = validationErrors.first?.errors?.first
+            self.validationErrorMessage = resolveApiError(
+                code: firstError?.code,
+                fallback: firstError?.message ?? "error".localized
+            )
         }
     }
     
