@@ -159,12 +159,18 @@ class ValidationMainViewModel {
         }
 
         let validationErrors = response.services?.validations?.validationErrors ?? []
-        if !validationErrors.isEmpty {
-            let firstError = validationErrors.first?.errors?.first
+        if let firstError = validationErrors.first?.errors?.first,
+           firstError.code != nil || firstError.message != nil {
             self.validationErrorMessage = resolveApiError(
-                code: firstError?.code,
-                fallback: firstError?.message ?? "error".localized
+                code: firstError.code,
+                fallback: firstError.message ?? "error".localized
             )
+        } else if !validationErrors.isEmpty {
+            self.validationErrorMessage = "error".localized
+        }
+
+        if !isDigitalIdentityVerified && validationErrorMessage == nil {
+            self.validationErrorMessage = "div_failed".localized
         }
     }
     

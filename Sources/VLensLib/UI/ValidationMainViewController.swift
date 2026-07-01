@@ -46,6 +46,7 @@ class ValidationMainViewController: UIViewController {
     private var face3ValidationViewController                : FaceViewController                       = .instance()
     
     private var currentChildViewController: UIViewController? = nil
+    private var isPostingLiveness = false
 
     private let viewModel = ValidationMainViewModel()
     
@@ -118,6 +119,7 @@ class ValidationMainViewController: UIViewController {
     }
     
     private func initViewsForStep(_ index: Int = 0) {
+        guard index < viewModel.stepsViewModels.count else { return }
         let stepItemViewModel = viewModel.stepsViewModels[index]
         
         switch stepItemViewModel {
@@ -199,7 +201,7 @@ class ValidationMainViewController: UIViewController {
                 
             } catch {
                 debugPrint(error)
-                closeSdkWithResult()
+                closeSdkWithResult(errorMessage: "internet_connection_error".localized)
             }
         }
     }
@@ -209,7 +211,7 @@ class ValidationMainViewController: UIViewController {
             if (viewModel.isDigitalIdentityVerified) {
                 delegate?.didValidateSuccessfully(transactionId: CachedData.shared.transactionId, userData: CachedData.shared.verifyBackResponse?.data)
             } else {
-                delegate?.didFailToValidate(transactionId: CachedData.shared.transactionId, error: errorMessage ?? "N/A")
+                delegate?.didFailToValidate(transactionId: CachedData.shared.transactionId, error: errorMessage ?? "div_failed".localized)
             }
         }
     }
@@ -255,6 +257,7 @@ class ValidationMainViewController: UIViewController {
 
 extension ValidationMainViewController: ValidationMainViewControllerDelegate {
     func didBackToPreviousStep() {
+        guard viewModel.currentStepIndex < viewModel.stepsViewModels.count else { return }
         let currentStepViewModel = viewModel.stepsViewModels[viewModel.currentStepIndex]
         
         // Special handling for IdReview - go back to NationalIdFront to redo the entire scan
@@ -277,28 +280,27 @@ extension ValidationMainViewController: ValidationMainViewControllerDelegate {
     }
     
     func didFinishValidationStepNumber(_ stepNumber: Int) {
-        DispatchQueue.main.async { [self] in
-            
-            let numOfSteps = viewModel.stepsViewModels.count
-            
-            let _stepNumber = max(stepNumber, viewModel.currentStepIndex)
-            
-            if (_stepNumber + 1 == numOfSteps) {
-                
-                loadingView.isHidden = false
-//                loadingTitleLabel.text = "verifying_your_identity".localized
-                loadingImageView.image = UIImage.gifImageWithName("person_scan_final")
-                loadingMessageLabel.text = "processing_facial_recognition".localized
-                postData()
-                return
-            }
-            
-            viewModel.currentStepIndex += 1
-            initViewsForStep(_stepNumber + 1)
+        guard stepNumber == viewModel.currentStepIndex else { return }
+
+        let numOfSteps = viewModel.stepsViewModels.count
+
+        if stepNumber + 1 == numOfSteps {
+            guard !isPostingLiveness else { return }
+            isPostingLiveness = true
+
+            loadingView.isHidden = false
+            loadingImageView.image = UIImage.gifImageWithName("person_scan_final")
+            loadingMessageLabel.text = "processing_facial_recognition".localized
+            postData()
+            return
         }
+
+        viewModel.currentStepIndex += 1
+        initViewsForStep(stepNumber + 1)
     }
     
     func didRetry(stepNumber: Int) {
+        isPostingLiveness = false
         viewModel.rerandomizeFaceInstructions()
         viewModel.validationErrorMessage = nil
         viewModel.currentStepIndex = stepNumber

@@ -62,12 +62,15 @@ class NationalIdBackViewModel {
         }
 
         let validationErrors = response.services?.validations?.validationErrors ?? []
-        if !validationErrors.isEmpty {
-            let firstError = validationErrors.first?.errors?.first
+        if let firstError = validationErrors.first?.errors?.first,
+           firstError.code != nil || firstError.message != nil {
             self.errorMessage = resolveApiError(
-                code: firstError?.code,
-                fallback: firstError?.message ?? "error".localized
+                code: firstError.code,
+                fallback: firstError.message ?? "error".localized
             )
+            return
+        } else if !validationErrors.isEmpty {
+            self.errorMessage = "error".localized
             return
         }
         
