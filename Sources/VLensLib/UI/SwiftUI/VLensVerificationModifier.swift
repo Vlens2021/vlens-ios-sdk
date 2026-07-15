@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 // MARK: - SwiftUI View Modifier
 
@@ -23,8 +24,13 @@ struct VLensVerificationModifier: ViewModifier {
     let accessToken: String
     let noOfRetries: Int
     let allowAutoCapture: Bool
+    let allowNonTrueDepthFallback: Bool
     let showCloseButton: Bool
     let colors: VLensColors
+    let enableSounds: Bool
+    let clientLogoImage: UIImage?
+    let showIdReviewPage: Bool
+    let customErrorMessages: [ApiError]
     let onSuccess: (String, VerifyIdBackPost.DataClass?) -> Void
     let onFailure: (String, String) -> Void
     let onDismiss: (() -> Void)?
@@ -42,8 +48,13 @@ struct VLensVerificationModifier: ViewModifier {
                     accessToken: accessToken,
                     noOfRetries: noOfRetries,
                     allowAutoCapture: allowAutoCapture,
+                    allowNonTrueDepthFallback: allowNonTrueDepthFallback,
                     showCloseButton: showCloseButton,
                     colors: colors,
+                    enableSounds: enableSounds,
+                    clientLogoImage: clientLogoImage,
+                    showIdReviewPage: showIdReviewPage,
+                    customErrorMessages: customErrorMessages,
                     onSuccess: { txnId, userData in
                         isPresented = false
                         onSuccess(txnId, userData)
@@ -139,8 +150,13 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
     public let accessToken: String
     public let noOfRetries: Int
     public let allowAutoCapture: Bool
+    public let allowNonTrueDepthFallback: Bool
     public let showCloseButton: Bool
     public let colors: VLensColors
+    public let enableSounds: Bool
+    public let clientLogoImage: UIImage?
+    public let showIdReviewPage: Bool
+    public let customErrorMessages: [ApiError]
     let onSuccess: @MainActor @Sendable (String, VerifyIdBackPost.DataClass?) -> Void
     let onFailure: @MainActor @Sendable (String, String) -> Void
     let onDismiss: (@MainActor @Sendable () -> Void)?
@@ -157,8 +173,12 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
     ///   - accessToken: Bearer token obtained from the login API.
     ///   - noOfRetries: Number of retry attempts on failure. Default `5`.
     ///   - allowAutoCapture: Enable automatic document capture. Default `true`.
+    ///   - allowNonTrueDepthFallback: Allow SDK to run on devices without TrueDepth camera (e.g., iPhone 8, SE). Default `false`.
     ///   - showCloseButton: Show an "X" close button in the top-right corner. Default `true`.
     ///   - colors: UI color configuration for branding. Default `VLensColors.default`.
+    ///   - enableSounds: Enable or disable SDK sounds. Default `true`.
+    ///   - clientLogoImage: Custom logo image to display in the SDK. Default `nil`.
+    ///   - showIdReviewPage: Show ID review page after ID capture. Default `true`.
     ///   - onSuccess: Called with `(transactionId, userData)` on successful verification.
     ///   - onFailure: Called with `(transactionId, errorMessage)` on failure.
     ///   - onDismiss: Called when user taps the close button to dismiss.
@@ -172,8 +192,13 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
         accessToken: String,
         noOfRetries: Int = 5,
         allowAutoCapture: Bool = true,
+        allowNonTrueDepthFallback: Bool = false,
         showCloseButton: Bool = true,
         colors: VLensColors = .default,
+        enableSounds: Bool = true,
+        clientLogoImage: UIImage? = nil,
+        showIdReviewPage: Bool = true,
+        customErrorMessages: [ApiError] = [],
         onSuccess: @escaping @MainActor @Sendable (String, VerifyIdBackPost.DataClass?) -> Void,
         onFailure: @escaping @MainActor @Sendable (String, String) -> Void,
         onDismiss: (@MainActor @Sendable () -> Void)? = nil
@@ -187,8 +212,13 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
         self.accessToken = accessToken
         self.noOfRetries = noOfRetries
         self.allowAutoCapture = allowAutoCapture
+        self.allowNonTrueDepthFallback = allowNonTrueDepthFallback
         self.showCloseButton = showCloseButton
         self.colors = colors
+        self.enableSounds = enableSounds
+        self.clientLogoImage = clientLogoImage
+        self.showIdReviewPage = showIdReviewPage
+        self.customErrorMessages = customErrorMessages
         self.onSuccess = onSuccess
         self.onFailure = onFailure
         self.onDismiss = onDismiss
@@ -214,7 +244,12 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
         CachedData.shared.accessToken       = accessToken
         CachedData.shared.noOfRetries       = noOfRetries
         CachedData.shared.allowAutoCapture  = allowAutoCapture
+        CachedData.shared.allowNonTrueDepthFallback = allowNonTrueDepthFallback
         CachedData.shared.colors            = colors
+        CachedData.shared.enableSounds      = enableSounds
+        CachedData.shared.clientLogoImage   = clientLogoImage
+        CachedData.shared.showIdReviewPage      = showIdReviewPage
+        CachedData.shared.customErrorMessages   = customErrorMessages
 
         let validationVC = ValidationMainViewController.instance(withLivenessOnly: withLivenessOnly)
         validationVC.delegate = context.coordinator
@@ -231,7 +266,20 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
     }
 
     public func updateUIViewController(_ uiViewController: VLensContainerViewController, context: Context) {
-        // No dynamic updates needed
+        CachedData.shared.transactionId             = transactionId
+        CachedData.shared.apiKey                    = apiKey
+        CachedData.shared.secretKey                 = secretKey
+        CachedData.shared.tenancyName               = tenancyName
+        CachedData.shared.language                  = language
+        CachedData.shared.accessToken               = accessToken
+        CachedData.shared.noOfRetries               = noOfRetries
+        CachedData.shared.allowAutoCapture          = allowAutoCapture
+        CachedData.shared.allowNonTrueDepthFallback = allowNonTrueDepthFallback
+        CachedData.shared.colors                    = colors
+        CachedData.shared.enableSounds              = enableSounds
+        CachedData.shared.clientLogoImage           = clientLogoImage
+        CachedData.shared.showIdReviewPage          = showIdReviewPage
+        CachedData.shared.customErrorMessages       = customErrorMessages
     }
 
     // MARK: - Coordinator (VLensDelegate)
@@ -350,6 +398,36 @@ public class VLensContainerViewController: UIViewController {
     @objc private func closeButtonTapped() {
         onCloseButtonTapped?()
     }
+
+    public override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        lockOrientationToPortrait()
+    }
+
+    public override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        return .portrait
+    }
+
+    public override var shouldAutorotate: Bool {
+        return false
+    }
+
+    public override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation {
+        return .portrait
+    }
+
+    private func lockOrientationToPortrait() {
+        if #available(iOS 16.0, *) {
+            let scene = view.window?.windowScene
+                ?? UIApplication.shared.connectedScenes
+                    .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
+            scene?.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait))
+            setNeedsUpdateOfSupportedInterfaceOrientations()
+        }
+        // Belt-and-suspenders: works on all iOS versions and handles the SwiftUI hosting case
+        UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
+        UIViewController.attemptRotationToDeviceOrientation()
+    }
 }
 
 // MARK: - Public View Extension
@@ -372,6 +450,7 @@ public extension View {
     /// - `accessToken`: Bearer token obtained from the login API.
     /// - `noOfRetries`: Number of retry attempts on failure. Default `5`.
     /// - `allowAutoCapture`: Enable automatic document capture. Default `true`.
+    /// - `allowNonTrueDepthFallback`: Allow SDK on devices without TrueDepth camera (falls back to auto-capture). Default `false`.
     /// - `showCloseButton`: Show an "X" close button. Default `false` (since fullScreenCover handles dismissal).
     /// - `colors`: UI color configuration for branding. Default `VLensColors.default`.
     /// - `onSuccess`: Called with `(transactionId, userData)` on successful verification.
@@ -424,8 +503,13 @@ public extension View {
         accessToken: String,
         noOfRetries: Int = 5,
         allowAutoCapture: Bool = true,
+        allowNonTrueDepthFallback: Bool = false,
         showCloseButton: Bool = false,
         colors: VLensColors = .default,
+        enableSounds: Bool = true,
+        clientLogoImage: UIImage? = nil,
+        showIdReviewPage: Bool = true,
+        customErrorMessages: [ApiError] = [],
         onSuccess: @escaping (String, VerifyIdBackPost.DataClass?) -> Void,
         onFailure: @escaping (String, String) -> Void,
         onDismiss: (() -> Void)? = nil
@@ -442,8 +526,13 @@ public extension View {
                 accessToken: accessToken,
                 noOfRetries: noOfRetries,
                 allowAutoCapture: allowAutoCapture,
+                allowNonTrueDepthFallback: allowNonTrueDepthFallback,
                 showCloseButton: showCloseButton,
                 colors: colors,
+                enableSounds: enableSounds,
+                clientLogoImage: clientLogoImage,
+                showIdReviewPage: showIdReviewPage,
+                customErrorMessages: customErrorMessages,
                 onSuccess: onSuccess,
                 onFailure: onFailure,
                 onDismiss: onDismiss

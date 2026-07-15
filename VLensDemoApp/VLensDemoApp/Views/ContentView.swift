@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import VLensLib
 
 struct ContentView: View {
@@ -10,6 +11,11 @@ struct ContentView: View {
     @State private var isLivenessOnly = false
     @State private var alertMessage: String?
     @State private var showAlert = false
+    
+    // New feature toggles
+    @State private var enableSounds = true
+    @State private var showIdReviewPage = true
+    @State private var useCustomLogo = false
 
     private let primary = Color(red: 0.224, green: 0.451, blue: 0.455)
     private let labelColor = Color(red: 0.125, green: 0.251, blue: 0.380)
@@ -45,6 +51,66 @@ struct ContentView: View {
 
                 Spacer().frame(height: 16)
 
+                // Feature Toggles Section
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("SDK Options")
+                        .font(.headline)
+                        .foregroundColor(primary)
+                    
+                    Toggle(isOn: $enableSounds) {
+                        HStack {
+                            Image(systemName: enableSounds ? "speaker.wave.2.fill" : "speaker.slash.fill")
+                                .foregroundColor(primary)
+                            Text("Enable Sounds")
+                                .foregroundColor(labelColor)
+                        }
+                    }
+                    .tint(primary)
+                    
+                    Toggle(isOn: $showIdReviewPage) {
+                        HStack {
+                            Image(systemName: "doc.text.magnifyingglass")
+                                .foregroundColor(primary)
+                            Text("Show ID Review Page")
+                                .foregroundColor(labelColor)
+                        }
+                    }
+                    .tint(primary)
+                    
+                    Toggle(isOn: $useCustomLogo) {
+                        HStack {
+                            Image(systemName: "photo")
+                                .foregroundColor(primary)
+                            Text("Use Custom Logo (Arsenal)")
+                                .foregroundColor(labelColor)
+                        }
+                    }
+                    .tint(primary)
+                    
+                    if useCustomLogo {
+                        HStack {
+                            Spacer()
+                            if let logo = UIImage(named: "arsenal_logo") {
+                                Image(uiImage: logo)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 50)
+                            } else {
+                                Text("⚠️ Add arsenal_logo to Assets")
+                                    .font(.caption)
+                                    .foregroundColor(.orange)
+                            }
+                            Spacer()
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+                .padding()
+                .background(Color.gray.opacity(0.05))
+                .cornerRadius(10)
+                
+                Spacer().frame(height: 16)
+
                 if isLoading {
                     HStack {
                         Spacer()
@@ -63,6 +129,7 @@ struct ContentView: View {
                 button("Get Started With Liveness Only") { startVLens(livenessOnly: true) }
                     .disabled(accessToken.isEmpty)
                     .opacity(accessToken.isEmpty ? 0.5 : 1)
+
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 24)
@@ -77,6 +144,9 @@ struct ContentView: View {
             language: "en",
             withLivenessOnly: isLivenessOnly,
             accessToken: accessToken,
+            enableSounds: enableSounds,
+            clientLogoImage: useCustomLogo ? UIImage(named: "arsenal_logo") : nil,
+            showIdReviewPage: showIdReviewPage,
             onSuccess: { txnId, userData in
                 showVLens = false
                 alertMessage = "Verification successful!\nName: \(userData?.user?.fullName ?? userData?.idFrontData?.name ?? "N/A")"
@@ -144,6 +214,7 @@ struct ContentView: View {
         isLivenessOnly = livenessOnly
         showVLens = true
     }
+
 }
 
 #Preview {

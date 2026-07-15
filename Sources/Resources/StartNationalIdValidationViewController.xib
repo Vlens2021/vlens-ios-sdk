@@ -10,6 +10,10 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="StartNationalIdValidationViewController" customModuleProvider="target">
             <connections>
+                <outlet property="idVectorImageView" destination="8YC-RQ-ez9" id="hK7-lL-mM8"/>
+                <outlet property="logoImageView" destination="Hw5-lh-IUc" id="aBC-de-fGH"/>
+                <outlet property="scanButton" destination="U3C-lz-8Js" id="xY1-zA-bB2"/>
+                <outlet property="titleLabel" destination="QCn-hQ-ojH" id="cD3-eE-fF4"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
             </connections>
         </placeholder>

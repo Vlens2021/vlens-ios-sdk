@@ -5,6 +5,8 @@
 //  Created by Mohamed Taher on 10/11/2024.
 //
 
+import UIKit
+
 @MainActor 
 class CachedData {
     
@@ -20,7 +22,23 @@ class CachedData {
     var language         : String   = "en"
     var noOfRetries      : Int      = 5
     var allowAutoCapture : Bool     = false
+    var allowNonTrueDepthFallback : Bool = false
     var colors           : VLensColors = .default
+    
+    // MARK: - Custom Error Messages
+    var customErrorMessages: [ApiError] = []
+
+    // MARK: - Sound Control
+    /// When true, SDK sounds are enabled. When false, all sounds are muted.
+    var enableSounds     : Bool     = true
+    
+    // MARK: - Custom Branding
+    /// Custom client logo image to be displayed instead of VLens logo
+    var clientLogoImage  : UIImage? = nil
+    
+    // MARK: - ID Review Page
+    /// When true, shows the ID review page after ID capture before proceeding to face validation
+    var showIdReviewPage : Bool     = true
     
     // MARK: - Transaction Properties
     var transactionId = ""

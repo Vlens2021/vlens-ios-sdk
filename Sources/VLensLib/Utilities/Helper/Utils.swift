@@ -287,37 +287,35 @@ class Utils{
         return nil
     }
     
-    static func compressBase64Image(_ base64String: String, maxSizeMB: Int = 3) -> String? {
-        let maxSizeBytes = maxSizeMB * 1024 * 1024  // Convert MB to Bytes
-        
-        // Convert Base64 to Data
-        guard let imageData = Data(base64Encoded: base64String) else {
-            debugPrint("Invalid Base64 string")
+    static func compressBase64Image(_ base64String: String, maxDimension: CGFloat = 800, quality: CGFloat = 0.9) -> String? {
+        guard let imageData = Data(base64Encoded: base64String),
+              let image = UIImage(data: imageData) else {
+            debugPrint("Invalid Base64 string or image data")
             return nil
         }
-        
-        // Convert Data to UIImage
-        guard let image = UIImage(data: imageData) else {
-            debugPrint("Invalid Image Data")
-            return nil
-        }
-        
-        var compressionQuality: CGFloat = 1.0
-        var compressedData = image.jpegData(compressionQuality: compressionQuality)
-        
-        // Reduce quality until it fits within maxSizeBytes
-        while let data = compressedData, data.count > maxSizeBytes, compressionQuality > 0.1 {
-            compressionQuality -= 0.1
-            compressedData = image.jpegData(compressionQuality: compressionQuality)
-        }
-        
-        guard let finalData = compressedData else {
+
+        // Resize to fit within maxDimension x maxDimension, preserving aspect ratio
+        let resized = image.resized(toMaxDimension: maxDimension)
+
+        guard let finalData = resized.jpegData(compressionQuality: quality) else {
             debugPrint("Compression failed")
             return nil
         }
-        
-        // Convert back to Base64
+
         return finalData.base64EncodedString()
     }
 
+}
+
+private extension UIImage {
+    func resized(toMaxDimension maxDimension: CGFloat) -> UIImage {
+        let largestSide = max(size.width, size.height)
+        guard largestSide > maxDimension else { return self }
+        let scale = maxDimension / largestSide
+        let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        return renderer.image { _ in
+            self.draw(in: CGRect(origin: .zero, size: newSize))
+        }
+    }
 }

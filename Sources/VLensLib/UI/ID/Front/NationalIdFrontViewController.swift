@@ -51,21 +51,36 @@ class NationalIdFrontViewController: UIViewController {
 //        setupCaptureButton()
     }
     
+    override func willMove(toParent parent: UIViewController?) {
+        super.willMove(toParent: parent)
+        if parent == nil {
+            captureSession?.stopRunning()
+        }
+    }
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
+
+        isProcessing = true
+
+        if captureSession?.isRunning == false {
+            DispatchQueue.global(qos: .userInitiated).async {
+                self.captureSession?.startRunning()
+            }
+        }
+
         isAutoCapturing = CachedData.shared.allowAutoCapture
         captureButtonView.isHidden = isAutoCapturing
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 7) {
             self.isAutoCapturing = false
             self.captureButtonView.isHidden = false
         }
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
             self.isProcessing = false
         }
-        
+
     }
 
     override func viewDidLayoutSubviews() {
@@ -93,8 +108,9 @@ class NationalIdFrontViewController: UIViewController {
     private func didCaptureImage(_ image: UIImage) {
         Task {
             guard let imageBase64String = image.jpegData(compressionQuality: 1)?.base64EncodedString() else { return }
+            let compressedBase64 = Utils.compressBase64Image(imageBase64String) ?? imageBase64String
             do {
-                try await viewModel.postData(imageBase64: imageBase64String)
+                try await viewModel.postData(imageBase64: compressedBase64)
                 CachedData.shared.didGetVerifyFrontResponseSuccessfully = true
             } catch {
                 debugPrint(error)
@@ -146,8 +162,13 @@ extension NationalIdFrontViewController {
             
             Task { @MainActor in
                 let session = captureSession
-                
+                let soundsEnabled = CachedData.shared.enableSounds
+
                 DispatchQueue.global(qos: .userInitiated).async {
+                    if !soundsEnabled {
+                        try? AVAudioSession.sharedInstance().setCategory(.playback, options: .mixWithOthers)
+                        try? AVAudioSession.sharedInstance().setActive(true)
+                    }
                     session?.startRunning()
                 }
             }
@@ -247,9 +268,10 @@ extension NationalIdFrontViewController: AVCapturePhotoCaptureDelegate {
         debugPrint("✅ Photo captured")
         
         Task { @MainActor in
+            captureSession?.stopRunning()
             didCaptureImage(image)
         }
-        
+
     }
 }
 

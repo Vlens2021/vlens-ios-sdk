@@ -12,6 +12,7 @@ protocol ValidationMainViewControllerDelegate {
     func didFinishValidationStepNumber(_ stepNumber: Int) async
     func didRetry(stepNumber: Int) async
     func didCancel() async
+    func didFailWithError(_ error: String) async
 }
 
 class ValidationMainViewController: UIViewController {
@@ -25,21 +26,24 @@ class ValidationMainViewController: UIViewController {
     @IBOutlet weak var containerView: UIView!
     @IBOutlet weak var loadingView: UIView!
     @IBOutlet weak var loadingImageView: UIImageView!
-//    @IBOutlet weak var loadingTitleLabel: UILabel!
+    @IBOutlet weak var logoImageView: UIImageView?
+    @IBOutlet weak var loadingTitleLabel: UILabel!
     @IBOutlet weak var loadingMessageLabel: UILabel!
     
     @IBOutlet weak var actionsView: UIStackView!
     @IBOutlet weak var retryButton: UIButton!
+    @IBOutlet weak var closeButton: UIButton!
     
     var delegate: VLensDelegate? = nil
     
     private let startNationalIdValidationViewController      : StartNationalIdValidationViewController  = .instance()
     private var nationalIdFrontValidationViewController      : NationalIdFrontViewController            = .instance()
     private var nationalIdBackValidationViewController       : NationalIdBackViewController             = .instance()
+    private var idReviewViewController                       : IdReviewViewController                   = .instance()
     private let startFaceValidationViewController            : StartFaceValidationViewController        = .instance()
-    private let face1ValidationViewController                : FaceViewController                       = .instance()
-    private let face2ValidationViewController                : FaceViewController                       = .instance()
-    private let face3ValidationViewController                : FaceViewController                       = .instance()
+    private var face1ValidationViewController                : FaceViewController                       = .instance()
+    private var face2ValidationViewController                : FaceViewController                       = .instance()
+    private var face3ValidationViewController                : FaceViewController                       = .instance()
     
     private var currentChildViewController: UIViewController? = nil
 
@@ -57,6 +61,19 @@ class ValidationMainViewController: UIViewController {
         super.viewDidLoad()
         let colors = CachedData.shared.colors.current(for: traitCollection)
         view.backgroundColor = colors.backgroundColor
+        loadingTitleLabel.textColor = colors.primaryColor
+
+        if var retryConfig = retryButton.configuration {
+            retryConfig.baseBackgroundColor = colors.accentColor
+            retryButton.configuration = retryConfig
+        }
+        closeButton.tintColor = colors.primaryColor
+
+        // Set custom client logo if provided
+        if let clientLogo = CachedData.shared.clientLogoImage {
+            logoImageView?.image = clientLogo
+            logoImageView?.contentMode = .scaleAspectFit
+        }
         
         viewModel.initData()
         
@@ -65,7 +82,8 @@ class ValidationMainViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
+
+        lockOrientationToPortrait()
         initViews()
     }
     
@@ -76,6 +94,27 @@ class ValidationMainViewController: UIViewController {
         loadingImageView.image = UIImage.gifImageWithName("person_scan_final")
         actionsView.isHidden = true
         loadingMessageLabel.text = "processing_your_id".localized
+        addGifBackground(to: loadingImageView)
+    }
+
+    private func addGifBackground(to imageView: UIImageView) {
+        guard let bgImage = UIImage(named: "gif_background", in: .module, compatibleWith: nil) else { return }
+        let colors = CachedData.shared.colors.current(for: traitCollection)
+        let tintedBg = bgImage.tinted(with: colors.accentColor)
+
+        let bgView = UIImageView(image: tintedBg)
+        bgView.contentMode = .scaleAspectFill
+        bgView.clipsToBounds = true
+        bgView.translatesAutoresizingMaskIntoConstraints = false
+
+        guard let parent = imageView.superview else { return }
+        parent.insertSubview(bgView, belowSubview: imageView)
+        NSLayoutConstraint.activate([
+            bgView.centerXAnchor.constraint(equalTo: imageView.centerXAnchor),
+            bgView.centerYAnchor.constraint(equalTo: imageView.centerYAnchor),
+            bgView.widthAnchor.constraint(equalToConstant: 243),
+            bgView.heightAnchor.constraint(equalToConstant: 243)
+        ])
     }
     
     private func initViewsForStep(_ index: Int = 0) {
@@ -93,6 +132,11 @@ class ValidationMainViewController: UIViewController {
         case is NationalIdBackViewModel:
             nationalIdBackValidationViewController.delegate = self
             switchToViewController(nationalIdBackValidationViewController)
+            
+        case is IdReviewViewModel:
+            idReviewViewController = .instance()
+            idReviewViewController.delegate = self
+            switchToViewController(idReviewViewController)
             
         case is StartFaceValidationViewModel:
             startFaceValidationViewController.delegate = self
@@ -170,6 +214,31 @@ class ValidationMainViewController: UIViewController {
         }
     }
     
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        return .portrait
+    }
+
+    override var shouldAutorotate: Bool {
+        return false
+    }
+
+    override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation {
+        return .portrait
+    }
+
+    private func lockOrientationToPortrait() {
+        if #available(iOS 16.0, *) {
+            let scene = view.window?.windowScene
+                ?? UIApplication.shared.connectedScenes
+                    .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
+            scene?.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait))
+            setNeedsUpdateOfSupportedInterfaceOrientations()
+        }
+        // Belt-and-suspenders: works on all iOS versions and handles the SwiftUI hosting case
+        UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
+        UIViewController.attemptRotationToDeviceOrientation()
+    }
+
     @IBAction func retryButtonAction(_ sender: Any) {
         Task {
             CachedData.shared.noOfRetries = max(CachedData.shared.noOfRetries - 1, 0)
@@ -186,6 +255,19 @@ class ValidationMainViewController: UIViewController {
 
 extension ValidationMainViewController: ValidationMainViewControllerDelegate {
     func didBackToPreviousStep() {
+        let currentStepViewModel = viewModel.stepsViewModels[viewModel.currentStepIndex]
+        
+        // Special handling for IdReview - go back to NationalIdFront to redo the entire scan
+        if currentStepViewModel is IdReviewViewModel {
+            // Reset ID scan and go back to front ID scan
+            viewModel.currentStepIndex = 1  // NationalIdFront step index
+            nationalIdFrontValidationViewController = .instance()
+            nationalIdBackValidationViewController = .instance()
+            idReviewViewController = .instance()
+            initViewsForStep(viewModel.currentStepIndex)
+            return
+        }
+        
         viewModel.currentStepIndex -= 1
         if viewModel.currentStepIndex < 0 {
             viewModel.currentStepIndex = 0
@@ -217,16 +299,36 @@ extension ValidationMainViewController: ValidationMainViewControllerDelegate {
     }
     
     func didRetry(stepNumber: Int) {
+        viewModel.rerandomizeFaceInstructions()
+        viewModel.validationErrorMessage = nil
         viewModel.currentStepIndex = stepNumber
         if (stepNumber == 0) {
             nationalIdFrontValidationViewController = .instance()
             nationalIdBackValidationViewController = .instance()
+            idReviewViewController = .instance()
         }
-        
+        // Always recreate face view controllers on retry to reset camera and processing state
+        // This is critical for liveness retry - old controllers have stale state (isProcessing = true)
+        recreateFaceViewControllers()
+        loadingView.isHidden = true
+        actionsView.isHidden = true
         initViewsForStep(stepNumber)
+    }
+    
+    /// Recreates all face view controller instances to ensure clean state on retry
+    private func recreateFaceViewControllers() {
+        // Create new instances of face view controllers
+        // This resets isProcessing, camera session, and all captured data
+        face1ValidationViewController = .instance()
+        face2ValidationViewController = .instance()
+        face3ValidationViewController = .instance()
     }
     
     func didCancel() {
         closeSdkWithResult(errorMessage: "USER_TAPPED_CANCEL")
+    }
+    
+    func didFailWithError(_ error: String) {
+        closeSdkWithResult(errorMessage: error)
     }
 }

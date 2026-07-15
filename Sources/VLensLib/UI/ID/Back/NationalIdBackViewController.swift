@@ -21,8 +21,10 @@ class NationalIdBackViewController: UIViewController {
     @IBOutlet weak var cardOverlayView: UIView!
     @IBOutlet weak var cardPreviewImageView: UIImageView!
     @IBOutlet weak var flipCardImageView: UIImageView!
+    @IBOutlet weak var logoImageView: UIImageView?
     
     @IBOutlet weak var loadingView: UIView!
+    @IBOutlet weak var loadingTitleLabel: UILabel!
     @IBOutlet weak var loadingStatusImageView: UIImageView!
     @IBOutlet weak var loadingMessageLabel: UILabel!
     
@@ -52,23 +54,49 @@ class NationalIdBackViewController: UIViewController {
         super.init(coder: coder)
     }
 
+    override func willMove(toParent parent: UIViewController?) {
+        super.willMove(toParent: parent)
+        if parent == nil {
+            captureSession?.stopRunning()
+        }
+    }
+
     public override func viewDidLoad() {
         super.viewDidLoad()
-        
+
+        let colors = CachedData.shared.colors.current(for: traitCollection)
+        loadingTitleLabel.textColor = colors.primaryColor
+
         flipCardImageView.image = UIImage.gifImageWithName("id_flip")
+
+        // Set custom client logo if provided
+        if let clientLogo = CachedData.shared.clientLogoImage {
+            logoImageView?.image = clientLogo
+            logoImageView?.contentMode = .scaleAspectFit
+        }
+
+        addGifBackground(to: loadingStatusImageView)
         setupCamera()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
+
+        isProcessing = true
+
+        if captureSession?.isRunning == false {
+            DispatchQueue.global(qos: .userInitiated).async {
+                self.captureSession?.startRunning()
+            }
+        }
+
         isAutoCapturing = CachedData.shared.allowAutoCapture
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 7) {
             self.isAutoCapturing = false
             self.captureButtonView.isHidden = false
         }
-        
+
         captureButtonView.isHidden = true
         loadingView.isHidden = true
         actionsView.isHidden = true
@@ -76,17 +104,17 @@ class NationalIdBackViewController: UIViewController {
         flipCardImageView.contentMode = .scaleAspectFit
         flipCardImageView.isHidden = false
         cardPreviewImageView.isHidden = true
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             self.flipCardImageView.isHidden = true
             self.cardPreviewImageView.isHidden = false
             self.captureButtonView.isHidden = self.isAutoCapturing
         }
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
             self.isProcessing = false
         }
-        
+
     }
 
     override func viewDidLayoutSubviews() {
@@ -124,14 +152,35 @@ class NationalIdBackViewController: UIViewController {
         capturePhoto()
     }
     
+    private func addGifBackground(to imageView: UIImageView) {
+        guard let bgImage = UIImage(named: "gif_background", in: .module, compatibleWith: nil) else { return }
+        let colors = CachedData.shared.colors.current(for: traitCollection)
+        let tintedBg = bgImage.tinted(with: colors.accentColor)
+
+        let bgView = UIImageView(image: tintedBg)
+        bgView.contentMode = .scaleAspectFill
+        bgView.clipsToBounds = true
+        bgView.translatesAutoresizingMaskIntoConstraints = false
+
+        guard let parent = imageView.superview else { return }
+        parent.insertSubview(bgView, belowSubview: imageView)
+        NSLayoutConstraint.activate([
+            bgView.centerXAnchor.constraint(equalTo: imageView.centerXAnchor),
+            bgView.centerYAnchor.constraint(equalTo: imageView.centerYAnchor),
+            bgView.widthAnchor.constraint(equalToConstant: 243),
+            bgView.heightAnchor.constraint(equalToConstant: 243)
+        ])
+    }
+
     private func didCaptureImage(_ image: UIImage) {
         Task {
             loadingView.isHidden = false
             loadingStatusImageView.image = UIImage.gifImageWithName("scan_id_final")
             
             guard let imageBase64String = image.jpegData(compressionQuality: 1)?.base64EncodedString() else { return }
+            let compressedBase64 = Utils.compressBase64Image(imageBase64String) ?? imageBase64String
             do {
-                try await viewModel.postData(imageBase64: imageBase64String)
+                try await viewModel.postData(imageBase64: compressedBase64)
                 if let error = viewModel.errorMessage {
                     loadingStatusImageView.image = UIImage.gifImageWithName("id_error_final")
                     loadingMessageLabel.text = error
@@ -189,8 +238,13 @@ extension NationalIdBackViewController {
             
             Task { @MainActor in
                 let session = captureSession
-                
+                let soundsEnabled = CachedData.shared.enableSounds
+
                 DispatchQueue.global(qos: .userInitiated).async {
+                    if !soundsEnabled {
+                        try? AVAudioSession.sharedInstance().setCategory(.playback, options: .mixWithOthers)
+                        try? AVAudioSession.sharedInstance().setActive(true)
+                    }
                     session?.startRunning()
                 }
             }
@@ -263,9 +317,10 @@ extension NationalIdBackViewController: AVCapturePhotoCaptureDelegate {
         debugPrint("✅ Photo captured")
         
         Task { @MainActor in
+            captureSession?.stopRunning()
             didCaptureImage(image)
         }
-        
+
     }
 }
 

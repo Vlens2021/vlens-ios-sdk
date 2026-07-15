@@ -35,6 +35,9 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
     // TrueDepth path
     private var sceneView: ARSCNView?
     private var isProcessing: Bool = false
+    
+    // Flag to track if gesture was successfully detected (prevents further processing)
+    private var gestureDetected: Bool = false
 
     // Fallback path (no TrueDepth)
     private var captureSession: AVCaptureSession?
@@ -45,15 +48,26 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
     var delegate: ValidationMainViewControllerDelegate? = nil
     var viewModel: FaceValidationViewModel? = nil
 
-    private let createdDate = Date()
+    private var isReadyToDetect = false
+    private var readyTimer: Timer?
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         if ARFaceTrackingConfiguration.isSupported {
+            // TrueDepth available - use ARKit face tracking
             setupARKitSession()
-        } else {
+        } else if CachedData.shared.allowNonTrueDepthFallback {
+            // TrueDepth not available but fallback is enabled - use auto-capture
             setupFallbackCameraSession()
+        } else {
+            // TrueDepth not available and fallback is disabled - gracefully close SDK
+            DispatchQueue.main.async { [weak self] in
+                Task {
+                    await self?.delegate?.didFailWithError("DEVICE_NOT_SUPPORTED")
+                }
+            }
+            return
         }
     }
 
@@ -66,14 +80,10 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
         arView.automaticallyUpdatesLighting = true
         cameraPreview.addSubview(arView)
         sceneView = arView
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            let configuration = ARFaceTrackingConfiguration()
-            arView.session.run(configuration)
-        }
+        // Session is started in viewDidAppear — no redundant timer needed here
     }
 
-    // MARK: - Fallback path (regular front camera, auto-capture every 3 s)
+    // MARK: - Fallback path (regular front camera, auto-capture every 2 s)
 
     private func setupFallbackCameraSession() {
         let session = AVCaptureSession()
@@ -99,10 +109,6 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
         DispatchQueue.global(qos: .userInitiated).async {
             session.startRunning()
         }
-
-        captureTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { [weak self] _ in
-            self?.captureFallbackPhoto()
-        }
     }
 
     private func captureFallbackPhoto() {
@@ -118,23 +124,84 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
         previewLayer?.frame = cameraPreview.bounds
     }
 
+    override func willMove(toParent parent: UIViewController?) {
+        super.willMove(toParent: parent)
+        if parent == nil {
+            gestureDetected = true
+            isProcessing = true
+            readyTimer?.invalidate()
+            captureTimer?.invalidate()
+            // Release the AR session fully so the next face VC can acquire the camera.
+            // sceneView may already be nil if finishGestureDetection() ran first.
+            sceneView?.session.pause()
+            sceneView?.removeFromSuperview()
+            sceneView = nil
+            captureSession?.stopRunning()
+        }
+    }
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        sceneView?.session.pause()
+        gestureDetected = true
+        isProcessing = true
+        readyTimer?.invalidate()
         captureTimer?.invalidate()
+        sceneView?.session.pause()
+        sceneView?.removeFromSuperview()
+        sceneView = nil
         captureSession?.stopRunning()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+
+        // Reset all processing flags for fresh start
+        isProcessing = false
+        gestureDetected = false
+        isReadyToDetect = false
         
         playSound()
-        
+
         hintLabel.text = (viewModel?.currentType.title as? String)?.localized
         hintImageView.image = UIImage(named: viewModel?.getImageName() ?? "Smile".localized, in: .module, with: .none)
+
+        // Restart AR session. Re-create the ARSCNView if it was released on a previous appearance.
+        if ARFaceTrackingConfiguration.isSupported {
+            if sceneView == nil {
+                setupARKitSession()
+            }
+            let configuration = ARFaceTrackingConfiguration()
+            sceneView?.session.run(configuration, options: [.resetTracking, .removeExistingAnchors])
+        } else if let captureSession = captureSession, !captureSession.isRunning {
+            // Restart fallback camera session if it was stopped
+            DispatchQueue.global(qos: .userInitiated).async {
+                captureSession.startRunning()
+            }
+        }
+
+        // Reset detection gate — user must see the instruction before capturing starts
+        readyTimer?.invalidate()
+        readyTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { [weak self] _ in
+            self?.isReadyToDetect = true
+
+            // Start fallback auto-capture after the ready delay (non-TrueDepth devices only)
+            if let self, self.captureSession != nil && !ARFaceTrackingConfiguration.isSupported {
+                self.captureTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { [weak self] _ in
+                    self?.captureFallbackPhoto()
+                }
+            }
+        }
     }
 
     @IBAction func backButtonAction(_ sender: Any) {
+        // Stop all processing immediately to ensure back button is responsive
+        isProcessing = true
+        gestureDetected = true
+        readyTimer?.invalidate()
+        captureTimer?.invalidate()
+        sceneView?.session.pause()
+        captureSession?.stopRunning()
+        
         Task {
             await self.delegate?.didBackToPreviousStep()
         }
@@ -153,6 +220,9 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
     }
     
     func playSound() {
+        // Check if sounds are enabled
+        guard CachedData.shared.enableSounds else { return }
+        
         let fileName = ((CachedData.shared.language == "en") ? viewModel?.getSoundFileName() : viewModel?.getSoundFileNameAr()) ?? "smile"
         guard let url = Bundle.module.url(forResource: fileName, withExtension: "mp3") else {
             debugPrint("\(fileName) MP3 file not found")
@@ -169,6 +239,9 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
     }
     
     func playSuccessSound() {
+        // Check if sounds are enabled
+        guard CachedData.shared.enableSounds else { return }
+        
         let fileName = "success"
         guard let url = Bundle.module.url(forResource: fileName, withExtension: "mp3") else {
             debugPrint("\(fileName) MP3 file not found")
@@ -190,21 +263,35 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
         let blendShapes = faceAnchor.blendShapes
         let transform = faceAnchor.transform
 
+        // Dispatch to main actor for UI updates
         Task { @MainActor in
             rendererFrame(blendShapes: blendShapes, transform: transform)
         }
-
-        
     }
     
+    /// Called once a valid gesture has been confirmed. Releases the AR camera so
+    /// the next FaceViewController can acquire it without conflict, then advances the flow.
+    private func finishGestureDetection(capturedImage: UIImage) {
+        gestureDetected = true
+        // Fully release the AR session and camera so the next face VC gets a clean start.
+        sceneView?.session.pause()
+        sceneView?.removeFromSuperview()
+        sceneView = nil
+        viewModel?.face = capturedImage.jpegData(compressionQuality: 1)?.base64EncodedString() ?? ""
+        playSuccessSound()
+        Task {
+            await delegate?.didFinishValidationStepNumber(viewModel?.getStepIndex() ?? 0)
+        }
+    }
+
     // ARSCNViewDelegate method to handle face tracking updates
     private func rendererFrame(blendShapes: [ARFaceAnchor.BlendShapeLocation: NSNumber], transform: simd_float4x4) {
         guard let viewModel else { return }
-//        guard let faceAnchor = anchor as? ARFaceAnchor else { return }
         
-        if (createdDate.timeIntervalSinceNow > -10) {
-            return
-        }
+        // Skip if gesture was already detected or back was pressed
+        guard !gestureDetected else { return }
+
+        guard isReadyToDetect else { return }
         
         if (isProcessing == true ) {
             return
@@ -219,79 +306,29 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
 
         let type = viewModel.currentType
         
-        if (type == .smile) {
-            let isSmile = self.isSmile(blendShapes: blendShapes)
-            if (isSmile) {
-                DispatchQueue.main.async { [self] in
-                    viewModel.face = currentImage.jpegData(compressionQuality: 1)?.base64EncodedString() ?? ""
-                    playSuccessSound()
-                    Task {
-                        await delegate?.didFinishValidationStepNumber(viewModel.getStepIndex())
-                    }
-                }
-                
-                return
-            }
+        if type == .smile && isSmile(blendShapes: blendShapes) {
+            finishGestureDetection(capturedImage: currentImage)
+            return
         }
-        
-        if (type == .blink) {
-            let isBlinking = self.isBlinking(blendShapes: blendShapes)
-            if (isBlinking) {
-                DispatchQueue.main.async { [self] in
-                    viewModel.face = currentImage.jpegData(compressionQuality: 1)?.base64EncodedString() ?? ""
-                    playSuccessSound()
-                    Task {
-                        await delegate?.didFinishValidationStepNumber(viewModel.getStepIndex())
-                    }
-                }
-                
-                return
-            }
+
+        if type == .blink && isBlinking(blendShapes: blendShapes) {
+            finishGestureDetection(capturedImage: currentImage)
+            return
         }
-        
-        if (type == .turnHeadRight) {
-            let isTurnRight = self.isTurnRight(transform: transform)
-            if (isTurnRight) {
-                DispatchQueue.main.async { [self] in
-                    viewModel.face = currentImage.jpegData(compressionQuality: 1)?.base64EncodedString() ?? ""
-                    playSuccessSound()
-                    Task {
-                        await delegate?.didFinishValidationStepNumber(viewModel.getStepIndex())
-                    }
-                }
-                
-                return
-            }
+
+        if type == .turnHeadRight && isTurnRight(transform: transform) {
+            finishGestureDetection(capturedImage: currentImage)
+            return
         }
-        
-        if (type == .turnHeadLeft) {
-            let isTurnLeft = self.isTurnLeft(transform: transform)
-            if (isTurnLeft) {
-                DispatchQueue.main.async { [self] in
-                    viewModel.face = currentImage.jpegData(compressionQuality: 1)?.base64EncodedString() ?? ""
-                    playSuccessSound()
-                    Task {
-                        await delegate?.didFinishValidationStepNumber(viewModel.getStepIndex())
-                    }
-                }
-                
-                return
-            }
+
+        if type == .turnHeadLeft && isTurnLeft(transform: transform) {
+            finishGestureDetection(capturedImage: currentImage)
+            return
         }
-        
-        if (type == .headStraight) {
-            let isHeadStraight = self.isHeadStraight(transform: transform)
-            if (isHeadStraight) {
-                DispatchQueue.main.async { [self] in
-                    viewModel.face = currentImage.jpegData(compressionQuality: 1)?.base64EncodedString() ?? ""
-                    playSuccessSound()
-                    Task {
-                        await delegate?.didFinishValidationStepNumber(viewModel.getStepIndex())
-                    }
-                }
-                
-                return
-            }
+
+        if type == .headStraight && isHeadStraight(transform: transform) {
+            finishGestureDetection(capturedImage: currentImage)
+            return
         }
 
 //        let isSmile         = self.isSmile(blendShapes: faceAnchor.blendShapes)
