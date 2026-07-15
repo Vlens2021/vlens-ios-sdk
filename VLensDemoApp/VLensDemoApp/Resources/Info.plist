@@ -13,15 +13,35 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+
+	<!-- ── Usage descriptions (required by App Store Review) ─────────────── -->
 	<key>NFCReaderUsageDescription</key>
-	<string>VLens requires NFC access to read your passport chip for secure identity verification.</string>
+	<string>VLens reads the NFC chip in your e-Passport to securely verify your identity.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>VLens requires camera access for ID scanning and liveness verification.</string>
+	<string>VLens uses the camera to scan your passport and ID card for identity verification.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>VLens requires microphone access for audio instructions during verification.</string>
+	<string>VLens requires microphone access as part of the identity verification process.</string>
+
+	<!-- ── NFC — ISO 7816 ePassport AID ─────────────────────────────────── -->
+	<!-- Without this key iOS blocks SELECT of the ePassport applet (AID A0000002471001) -->
+	<key>com.apple.developer.nfc.readersession.iso7816.select-identifiers</key>
+	<array>
+		<string>A0000002471001</string>
+	</array>
+
+	<!-- ── App Transport Security ─────────────────────────────────────────── -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+
+	<!-- ── UI ────────────────────────────────────────────────────────────── -->
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UIRequiresFullScreen</key>
