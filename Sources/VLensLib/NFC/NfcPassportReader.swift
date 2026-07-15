@@ -11,10 +11,6 @@ final class NfcPassportReader {
 
     // MARK: - Public
 
-    var isNfcAvailable: Bool {
-        NFCTagReaderSession.readingAvailable
-    }
-
     /// Reads the passport chip and returns a populated NfcPassportResult.
     /// Throws on authentication failure or unrecoverable NFC error.
     @MainActor
@@ -94,17 +90,17 @@ final class NfcPassportReader {
         if let dg1 = passport.dataGroupsRead[.DG1] {
             result.dg1Base64 = Data(dg1.data).base64EncodedString()
             result.dg1 = NfcPassportResult.DG1Data(
-                documentNumber: passport.documentNumber ?? "",
-                firstName:      passport.firstName ?? "",
-                lastName:       passport.lastName ?? "",
-                nationality:    passport.nationality ?? "",
-                gender:         passport.gender ?? "",
-                dateOfBirth:    passport.dateOfBirth ?? "",
-                dateOfExpiry:   passport.documentExpiryDate ?? "",
-                documentType:   passport.documentType ?? "",
-                issuingState:   passport.issuingAuthority ?? ""
+                documentNumber: passport.documentNumber,
+                firstName:      passport.firstName,
+                lastName:       passport.lastName,
+                nationality:    passport.nationality,
+                gender:         passport.gender,
+                dateOfBirth:    passport.dateOfBirth,
+                dateOfExpiry:   passport.documentExpiryDate,
+                documentType:   passport.documentType,
+                issuingState:   passport.issuingAuthority
             )
-            NfcLogStore.shared.add("D", "DG1", "\(dg1.data.count) bytes — \(passport.documentNumber ?? "?")")
+            NfcLogStore.shared.add("D", "DG1", "\(dg1.data.count) bytes — \(passport.documentNumber)")
         } else {
             result.error = "DG1 not available"
             NfcLogStore.shared.add("W", "DG1", "not read")

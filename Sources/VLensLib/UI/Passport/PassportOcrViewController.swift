@@ -293,6 +293,13 @@ class PassportOcrViewController: UIViewController {
             return
         }
 
+        // Mirror the Flutter SDK check: if the backend says NFC is unsupported for
+        // this passport's country, stop here rather than sending the user to NFC.
+        if data.ePassportSupported == false {
+            showError("passport_country_not_supported".localized)
+            return
+        }
+
         CachedData.shared.passportDocumentNumber = passportNo.trimmingCharacters(in: .whitespaces).uppercased()
         CachedData.shared.passportDateOfBirth    = toYYMMDD(dob)
         CachedData.shared.passportExpiryDate     = toYYMMDD(expiry)

@@ -37,16 +37,20 @@ struct VerifyPassportOcrPost {
         let countryCode: String?
         let gender: String?
         let documentType: String?
+        /// False when the passport's country of issue doesn't support NFC chip reading.
+        /// The NFC step must be skipped when this is false.
+        let ePassportSupported: Bool?
 
         enum CodingKeys: String, CodingKey {
-            case passportNumber = "passport_no"
+            case passportNumber    = "passport_no"
             case name
-            case dateOfBirth    = "Date_of_Birth"
-            case expiryDate     = "Date_of_Expiry"
+            case dateOfBirth       = "Date_of_Birth"
+            case expiryDate        = "Date_of_Expiry"
             case nationality
-            case countryCode    = "country_code"
+            case countryCode       = "country_code"
             case gender
-            case documentType   = "doc_Type"
+            case documentType      = "doc_Type"
+            case ePassportSupported = "ePassport_supported"
         }
     }
 }

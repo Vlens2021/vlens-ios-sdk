@@ -81,3 +81,18 @@
 /* Passport OCR */
 "passport_ocr_title" = "Scan Passport";
 "passport_ocr_instruction" = "Place your passport open to the photo page.\nAlign the MRZ zone at the bottom inside the frame.";
+"passport_country_not_supported" = "Passport country not supported for NFC verification.";
+
+/* NFC Scan screen — keys used by NfcScanViewController */
+"nfc_reading_title"    = "Scan Passport Chip";
+"nfc_reading_subtitle" = "We will read the electronic chip in your passport for secure verification.";
+"nfc_scanning_title"   = "Scanning...";
+"nfc_scanning_subtitle" = "Hold your phone flat against the passport cover near the chip symbol.";
+"nfc_verifying_title"  = "Verifying Passport";
+"nfc_success_title"    = "Passport Verified";
+"nfc_success_subtitle" = "Your passport chip was read and verified successfully.";
+"nfc_error_title"      = "Scan Failed";
+"nfc_tip_title"        = "Tips for scanning:";
+"nfc_tip_1"            = "Open your passport to the photo page.";
+"nfc_tip_2"            = "Place the phone flat on the passport cover or photo page.";
+"nfc_tip_3"            = "Keep still until the scan completes — it may take a few seconds.";

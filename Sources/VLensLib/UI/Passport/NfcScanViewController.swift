@@ -242,14 +242,10 @@ class NfcScanViewController: UIViewController {
             stack.bottomAnchor.constraint(equalTo: tipsCard.bottomAnchor),
         ])
 
-        let title = makeLabel("Tips:", size: 14, weight: .semibold)
+        let title = makeLabel("nfc_tip_title".localized, size: 14, weight: .semibold)
         stack.addArrangedSubview(title)
-        [
-            "1.  Open your passport to the photo page.",
-            "2.  Place the phone flat on the passport cover or photo page.",
-            "3.  Keep still until the scan completes — it may take a few seconds.",
-        ].forEach { tip in
-            stack.addArrangedSubview(makeLabel(tip, size: 13))
+        ["nfc_tip_1", "nfc_tip_2", "nfc_tip_3"].forEach { key in
+            stack.addArrangedSubview(makeLabel("• " + key.localized, size: 13))
         }
     }
 
@@ -340,46 +336,46 @@ class NfcScanViewController: UIViewController {
 
         switch state {
         case .idle:
-            titleLabel.text    = "Scan Passport Chip"
-            subtitleLabel.text = "We will read the electronic chip in your passport for secure verification."
+            titleLabel.text    = "nfc_reading_title".localized
+            subtitleLabel.text = "nfc_reading_subtitle".localized
             rippleContainer.isHidden = false
             tipsCard.isHidden        = false
             stopRipple()
             drawNfcBadge(color: colors.accentColor)
-            primaryButton.setTitle("Start Scanning", for: .normal)
-            secondaryButton.setTitle("Cancel", for: .normal)
+            primaryButton.setTitle("start_scanning".localized, for: .normal)
+            secondaryButton.setTitle("close".localized, for: .normal)
 
         case .scanning:
-            titleLabel.text    = "Scanning..."
-            subtitleLabel.text = "Hold your phone flat against the passport cover near the chip symbol."
+            titleLabel.text    = "nfc_scanning_title".localized
+            subtitleLabel.text = "nfc_scanning_subtitle".localized
             rippleContainer.isHidden = false
             startRipple(color: colors.accentColor)
             primaryButton.isHidden   = true
-            secondaryButton.setTitle("Cancel", for: .normal)
+            secondaryButton.setTitle("close".localized, for: .normal)
 
         case .verifying:
-            titleLabel.text    = "Verifying Passport"
-            subtitleLabel.text = "Verifying your identity..."
+            titleLabel.text    = "nfc_verifying_title".localized
+            subtitleLabel.text = "verifying_your_identity".localized
             spinner.startAnimating()
             primaryButton.isHidden   = true
             secondaryButton.isHidden = true
 
         case .success:
-            titleLabel.text    = "Passport Verified"
-            subtitleLabel.text = "Your passport chip was read and verified successfully."
+            titleLabel.text    = "nfc_success_title".localized
+            subtitleLabel.text = "nfc_success_subtitle".localized
             checkmarkLabel.superview?.isHidden = false
-            primaryButton.setTitle("Continue", for: .normal)
+            primaryButton.setTitle("continue_button".localized, for: .normal)
             secondaryButton.isHidden = true
 
         case .error(let msg):
-            titleLabel.text    = "Scan Failed"
+            titleLabel.text    = "nfc_error_title".localized
             subtitleLabel.text = ""
             errorIconLabel.superview?.isHidden = false
             errorDetailLabel.isHidden  = false
             errorDetailLabel.text      = msg
             shareLogButton.isHidden    = (shareableLog == nil)
-            primaryButton.setTitle("Try Again", for: .normal)
-            secondaryButton.setTitle("Cancel", for: .normal)
+            primaryButton.setTitle("retry".localized, for: .normal)
+            secondaryButton.setTitle("close".localized, for: .normal)
         }
     }
 
@@ -466,6 +462,10 @@ class NfcScanViewController: UIViewController {
     @objc private func secondaryTapped() {
         switch state {
         case .scanning:
+            // Cancel the in-flight NFC session first, then move to idle.
+            // The reader's async task will throw an error which is swallowed
+            // because the state is no longer .scanning when it arrives.
+            reader.cancel()
             state = .idle
         default:
             Task { await delegate?.didCancel() }
@@ -499,12 +499,17 @@ class NfcScanViewController: UIViewController {
                     expiryDate: expiry
                 )
             } catch {
+                // If the user already tapped Cancel (state ≠ .scanning), swallow the error
+                // so we don't overwrite the idle UI with a spurious error screen.
+                guard case .scanning = state else { return }
                 let logs = NfcLogStore.shared.snapshot()
                 let logText = logs.map { "[\($0["ts"]!)][\($0["level"]!)][\($0["tag"]!)] \($0["message"]!)" }.joined(separator: "\n")
                 shareableLog = "=== NFC CHIP LOGS ===\n\(Date().ISO8601Format())\n\n\(logText)\n\nError: \(error.localizedDescription)"
                 state = .error(error.localizedDescription)
                 return
             }
+
+            guard case .scanning = state else { return }
 
             if let err = nfcResult.error {
                 state = .error(err)
