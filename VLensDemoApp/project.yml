@@ -18,7 +18,7 @@ targets:
       path: VLensDemoApp/VLensDemoApp.entitlements
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.vlens.demo
+        PRODUCT_BUNDLE_IDENTIFIER: vlens.vlensIOSDemo
         INFOPLIST_FILE: VLensDemoApp/Resources/Info.plist
         SWIFT_VERSION: "6.0"
         GENERATE_INFOPLIST_FILE: false
