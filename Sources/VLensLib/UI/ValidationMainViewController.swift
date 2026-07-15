@@ -45,8 +45,10 @@ class ValidationMainViewController: UIViewController {
     private var face1ValidationViewController                : FaceViewController                       = .instance()
     private var face2ValidationViewController                : FaceViewController                       = .instance()
     private var face3ValidationViewController                : FaceViewController                       = .instance()
-    private var nfcScanViewController                        : NfcScanViewController                    = .instance()
+    private var startPassportViewController                  : StartPassportViewController              = .instance()
     private var passportOcrViewController                    : PassportOcrViewController                = .instance()
+    private var passportReviewViewController                 : PassportReviewViewController             = .instance()
+    private var nfcScanViewController                        : NfcScanViewController                    = .instance()
     
     private var currentChildViewController: UIViewController? = nil
     private var isPostingLiveness = false
@@ -164,10 +166,20 @@ class ValidationMainViewController: UIViewController {
                 switchToViewController(face3ValidationViewController)
             }
 
+        case is StartPassportViewModel:
+            startPassportViewController = .instance()
+            startPassportViewController.delegate = self
+            switchToViewController(startPassportViewController)
+
         case is PassportOcrViewModel:
             passportOcrViewController = .instance()
             passportOcrViewController.delegate = self
             switchToViewController(passportOcrViewController)
+
+        case is PassportReviewViewModel:
+            passportReviewViewController = .instance()
+            passportReviewViewController.delegate = self
+            switchToViewController(passportReviewViewController)
 
         case is NfcScanViewModel:
             nfcScanViewController = .instance()

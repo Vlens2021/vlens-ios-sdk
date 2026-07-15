@@ -51,6 +51,9 @@ class CachedData {
     var passportDateOfBirth: String = ""
     /// Expiry date in YYMMDD format (e.g. "290305")
     var passportExpiryDate: String = ""
+    /// Full OCR response stored after PassportOcrViewController succeeds,
+    /// used by PassportReviewViewController to display extracted fields.
+    var passportOcrData: VerifyPassportOcrPost.DataClass? = nil
 
     // MARK: - APIs Response
     var didGetVerifyFrontResponseSuccessfully: Bool? = nil

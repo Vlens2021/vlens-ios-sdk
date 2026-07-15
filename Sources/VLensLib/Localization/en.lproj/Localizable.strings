@@ -78,6 +78,29 @@
 "nfc_start" = "Start Scanning";
 "nfc_retry" = "Try Again";
 
+/* Passport — start + review screens */
+"scanning_your_passport_title" = "Scan Your Passport";
+"passport_instructions" = "To verify your identity, please take a clear photo of your passport photo page (the one with your MRZ lines at the bottom).";
+"instructions" = "Instructions";
+"passport_instruction_1" = "Open your passport to the photo page.";
+"passport_instruction_2" = "Place your passport on a flat surface.";
+"passport_instruction_3" = "Hold your phone directly above — keep it steady.";
+"passport_instruction_4" = "Make sure the MRZ lines at the bottom are clearly visible.";
+"requirements" = "Requirements";
+"passport_requirement_valid" = "The passport must be valid and not expired.";
+"passport_requirement_clear" = "The photo page must be clean and undamaged.";
+"passport_requirement_mrz" = "The MRZ zone (two lines at the bottom) must be fully visible.";
+"passport_requirement_lighting" = "Use good lighting — avoid glare and shadows.";
+"tips" = "Tips";
+"passport_tip_1" = "Remove the passport from any plastic sleeve before scanning.";
+"passport_tip_2" = "Ensure you are in a well-lit environment.";
+"review_passport_title" = "Review Your Passport";
+"review_passport_description" = "Please confirm that the extracted information is correct before proceeding to NFC scan.";
+"passport_number_label" = "Passport Number";
+"nationality_label" = "Nationality";
+"country_code_label" = "Country Code";
+"passport" = "Passport";
+
 /* Passport OCR */
 "passport_ocr_title" = "Scan Passport";
 "passport_ocr_instruction" = "Place your passport open to the photo page.\nAlign the MRZ zone at the bottom inside the frame.";

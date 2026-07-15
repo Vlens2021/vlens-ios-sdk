@@ -303,6 +303,7 @@ class PassportOcrViewController: UIViewController {
         CachedData.shared.passportDocumentNumber = passportNo.trimmingCharacters(in: .whitespaces).uppercased()
         CachedData.shared.passportDateOfBirth    = toYYMMDD(dob)
         CachedData.shared.passportExpiryDate     = toYYMMDD(expiry)
+        CachedData.shared.passportOcrData        = data  // retained for PassportReviewViewController
 
         await delegate?.didFinishValidationStepNumber(0)
     }

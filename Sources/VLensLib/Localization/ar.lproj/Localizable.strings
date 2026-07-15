@@ -68,6 +68,28 @@
 
 "passport_country_not_supported" = "جواز السفر الخاص بهذه الدولة غير مدعوم للتحقق عبر NFC.";
 
+"scanning_your_passport_title" = "مسح جواز سفرك";
+"passport_instructions" = "للتحقق من هويتك، يُرجى التقاط صورة واضحة لصفحة الصورة في جواز سفرك (التي تحتوي على أسطر MRZ في الأسفل).";
+"instructions" = "التعليمات";
+"passport_instruction_1" = "افتح جواز سفرك على صفحة الصورة.";
+"passport_instruction_2" = "ضع جواز سفرك على سطح مستوٍ.";
+"passport_instruction_3" = "أمسك هاتفك مباشرةً فوقه — أبقِه ثابتاً.";
+"passport_instruction_4" = "تأكد من وضوح أسطر MRZ في الأسفل.";
+"requirements" = "المتطلبات";
+"passport_requirement_valid" = "يجب أن يكون جواز السفر صالحاً وغير منتهي الصلاحية.";
+"passport_requirement_clear" = "يجب أن تكون صفحة الصورة نظيفة وغير تالفة.";
+"passport_requirement_mrz" = "يجب أن تكون منطقة MRZ (السطران في الأسفل) مرئية بالكامل.";
+"passport_requirement_lighting" = "استخدم إضاءة جيدة — تجنب الوهج والظلال.";
+"tips" = "نصائح";
+"passport_tip_1" = "أخرج جواز السفر من أي غلاف بلاستيكي قبل المسح.";
+"passport_tip_2" = "تأكد من أنك في بيئة مضاءة جيداً.";
+"review_passport_title" = "مراجعة جواز سفرك";
+"review_passport_description" = "يُرجى التأكد من صحة المعلومات المستخرجة قبل المتابعة إلى مسح NFC.";
+"passport_number_label" = "رقم جواز السفر";
+"nationality_label" = "الجنسية";
+"country_code_label" = "رمز البلد";
+"passport" = "جواز السفر";
+
 "nfc_reading_title"    = "مسح شريحة جواز السفر";
 "nfc_reading_subtitle" = "سنقوم بقراءة الشريحة الإلكترونية في جواز سفرك للتحقق الآمن من هويتك.";
 "nfc_scanning_title"   = "جارٍ المسح...";

@@ -26,18 +26,22 @@ class ValidationMainViewModel {
     
     @MainActor
     func initData() {
-        // Passport-only flow: OCR front page → NFC scan.
-        // Skip OCR if passport data is already pre-filled (e.g., emulator mode).
+        // Passport-only flow.
+        // Full flow:  Start → OCR camera → Review → NFC scan
+        // Emulator:   (pre-filled MRZ) NFC scan only — skips Start, OCR, Review
         if withPassport {
             if !CachedData.shared.passportDocumentNumber.isEmpty {
+                // MRZ pre-filled (emulator / setPassportData) — go straight to NFC.
                 stepsViewModels = [NfcScanViewModel(stepIndex: 0)]
                 faceStepIndex = 0
             } else {
                 stepsViewModels = [
-                    PassportOcrViewModel(stepIndex: 0),
-                    NfcScanViewModel(stepIndex: 1),
+                    StartPassportViewModel(stepIndex: 0),   // Intro + tips
+                    PassportOcrViewModel(stepIndex: 1),     // Camera capture
+                    PassportReviewViewModel(stepIndex: 2),  // Confirm extracted data
+                    NfcScanViewModel(stepIndex: 3),         // NFC chip read + verify
                 ]
-                faceStepIndex = 1
+                faceStepIndex = 3
             }
             return
         }
