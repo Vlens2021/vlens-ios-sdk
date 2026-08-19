@@ -114,19 +114,19 @@ class ValidationMainViewModel {
         let face1 = face1ViewModel?.face ?? ""
         let face2 = face2ViewModel?.face ?? ""
         let face3 = face3ViewModel?.face ?? ""
-        
-        let compressedFace1 = Utils.compressBase64Image(face1) ?? ""
-        let compressedFace2 = Utils.compressBase64Image(face2) ?? ""
-        let compressedFace3 = Utils.compressBase64Image(face3) ?? ""
-        
+
+        let compressedFace1 = Utils.compressBase64Image(face1, maxDimension: 1080, quality: 0.5) ?? ""
+        let compressedFace2 = Utils.compressBase64Image(face2, maxDimension: 1080, quality: 0.5) ?? ""
+        let compressedFace3 = Utils.compressBase64Image(face3, maxDimension: 1080, quality: 0.5) ?? ""
+
         let request = VerifyLivenessMultiPost.Request(transactionID: CachedData.shared.transactionId, face1: compressedFace1, face2: compressedFace2, face3: compressedFace3)
-        
+
         let accessToken = CachedData.shared.accessToken
         var url = "\(CachedData.shared.apiBaseUrl)/api/DigitalIdentity/verify/liveness/multi"
         if accessToken.isEmpty {
             url = "\(CachedData.shared.apiBaseUrl)/v1/ocr/liveness/multi"
         }
-        
+
         let headers = [
             "Content-Type"                  : "application/json",
             "Accept"                        : "*/*",
@@ -136,7 +136,7 @@ class ValidationMainViewModel {
             "X-Request-Id"                  : UUID().uuidString,
             "Authorization"                 : "Bearer \(CachedData.shared.accessToken)"
         ]
-        
+
         let httpHeaders = HTTPHeaders(headers)
         let response = try await AF.request(
             url,
@@ -147,7 +147,7 @@ class ValidationMainViewModel {
         )
         .serializingDecodable(VerifyLivenessMultiPost.Response.self)
         .value
-        
+
         CachedData.shared.livenessResponse = response
         isDigitalIdentityVerified = response.data?.isDigitalIdentityVerified ?? false
 
