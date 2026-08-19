@@ -23,6 +23,7 @@ class StartFaceValidationViewController: UIViewController {
     }
     
     var delegate: ValidationMainViewControllerDelegate? = nil
+    var stepIndex: Int = 0
     
     @IBOutlet weak var logoImageView: UIImageView?
     @IBOutlet weak var titleLabel: UILabel!
@@ -67,7 +68,7 @@ class StartFaceValidationViewController: UIViewController {
 
     @IBAction func nextButtonAction(_ sender: Any) {
         Task {
-            await delegate?.didFinishValidationStepNumber(0)
+            await delegate?.didFinishValidationStepNumber(stepIndex)
         }
     }
 

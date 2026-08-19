@@ -142,6 +142,7 @@ class ValidationMainViewController: UIViewController {
             
         case is StartFaceValidationViewModel:
             startFaceValidationViewController.delegate = self
+            startFaceValidationViewController.stepIndex = index
             switchToViewController(startFaceValidationViewController)
             
         case is FaceValidationViewModel:
