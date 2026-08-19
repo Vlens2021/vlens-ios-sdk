@@ -30,7 +30,7 @@ class NationalIdBackViewModel {
             "Authorization"                 : "Bearer \(CachedData.shared.accessToken)"
         ]
         
-        let request = VerifyIdBackPost.Request(transactionID: CachedData.shared.transactionId, image: imageBase64, getExtractedData: true)
+        let request = VerifyIdBackPost.Request(transactionID: CachedData.shared.transactionId.lowercased(), image: imageBase64, getExtractedData: true)
         let httpHeaders = HTTPHeaders(headers)
         let response = try await AF.request(
             url,

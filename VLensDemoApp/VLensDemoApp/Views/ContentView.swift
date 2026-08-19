@@ -200,7 +200,7 @@ struct ContentView: View {
         Task {
             do {
                 let token = try await LoginService.login()
-                transactionId = UUID().uuidString
+                transactionId = UUID().uuidString.lowercased()
                 accessToken = token
             } catch {
                 alertMessage = "Login failed: \(error.localizedDescription)"

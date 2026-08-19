@@ -119,7 +119,7 @@ class ValidationMainViewModel {
         let compressedFace2 = Utils.compressBase64Image(face2, maxDimension: 1080, quality: 0.5) ?? ""
         let compressedFace3 = Utils.compressBase64Image(face3, maxDimension: 1080, quality: 0.5) ?? ""
 
-        let request = VerifyLivenessMultiPost.Request(transactionID: CachedData.shared.transactionId, face1: compressedFace1, face2: compressedFace2, face3: compressedFace3)
+        let request = VerifyLivenessMultiPost.Request(transactionID: CachedData.shared.transactionId.lowercased(), face1: compressedFace1, face2: compressedFace2, face3: compressedFace3)
 
         let accessToken = CachedData.shared.accessToken
         var url = "\(CachedData.shared.apiBaseUrl)/api/DigitalIdentity/verify/liveness/multi"

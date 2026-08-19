@@ -41,7 +41,9 @@ class CachedData {
     var showIdReviewPage : Bool     = true
     
     // MARK: - Transaction Properties
-    var transactionId = ""
+    var transactionId: String = "" {
+        didSet { transactionId = transactionId.lowercased() }
+    }
     
     // MARK: - APIs Response
     var didGetVerifyFrontResponseSuccessfully: Bool? = nil
