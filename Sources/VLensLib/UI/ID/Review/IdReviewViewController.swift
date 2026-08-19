@@ -335,7 +335,7 @@ class IdReviewViewController: UIViewController {
     
     @objc private func continueButtonTapped() {
         Task {
-            await delegate?.didFinishValidationStepNumber(0)
+            await delegate?.didFinishValidationStepNumber(viewModel.getStepIndex())
         }
     }
     
