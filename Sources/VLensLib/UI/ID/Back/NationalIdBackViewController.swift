@@ -63,7 +63,8 @@ class NationalIdBackViewController: UIViewController {
 
     public override func viewDidLoad() {
         super.viewDidLoad()
-
+        DatadogService.shared.rumStartView(key: "national_id_back", name: "Back ID Screen")
+        DatadogService.shared.info("Back ID screen displayed")
         let colors = CachedData.shared.colors.current(for: traitCollection)
         loadingTitleLabel.textColor = colors.primaryColor
 
@@ -121,6 +122,11 @@ class NationalIdBackViewController: UIViewController {
         super.viewDidLayoutSubviews()
         previewLayer?.frame = cameraPreviewView.bounds
         previewLayer.videoGravity = .resizeAspectFill
+    }
+
+    public override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        DatadogService.shared.rumStopView(key: "national_id_back")
     }
 
     @IBAction func backButtonAction(_ sender: Any) {

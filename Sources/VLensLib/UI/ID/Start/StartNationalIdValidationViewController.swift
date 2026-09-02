@@ -31,6 +31,8 @@ class StartNationalIdValidationViewController: UIViewController {
 
     public override func viewDidLoad() {
         super.viewDidLoad()
+        DatadogService.shared.rumStartView(key: "start_national_id", name: "Start National ID Screen")
+        DatadogService.shared.info("Start National ID screen displayed")
         let colors = CachedData.shared.colors.current(for: traitCollection)
         view.backgroundColor = colors.backgroundColor
         titleLabel.textColor = colors.primaryColor
@@ -65,7 +67,14 @@ class StartNationalIdValidationViewController: UIViewController {
         ])
     }
 
+    public override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        DatadogService.shared.rumStopView(key: "start_national_id")
+    }
+
     @IBAction func nextButtonAction(_ sender: Any) {
+        DatadogService.shared.info("Start National ID tapped")
+        DatadogService.shared.rumAddAction("start_national_id_tap")
         Task {
             await delegate?.didFinishValidationStepNumber(0)
         }

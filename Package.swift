@@ -17,14 +17,16 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/Alamofire/Alamofire.git", from: "5.7.0"),
+        .package(url: "https://github.com/DataDog/dd-sdk-ios", from: "2.14.0"),
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "VLensLib",
             dependencies: [
                 "Alamofire",
+                .product(name: "DatadogCore", package: "dd-sdk-ios"),
+                .product(name: "DatadogLogs", package: "dd-sdk-ios"),
+                .product(name: "DatadogRUM",  package: "dd-sdk-ios"),
             ],
             path: "Sources",
             resources: [

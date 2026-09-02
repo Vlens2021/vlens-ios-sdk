@@ -235,6 +235,8 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
         CachedData.shared.verifyBackResponse    = nil
         CachedData.shared.livenessResponse      = nil
 
+        DatadogService.shared.initialize()
+
         // Configure VLens cached data for this session
         CachedData.shared.transactionId     = transactionId
         CachedData.shared.apiKey            = apiKey
@@ -250,6 +252,7 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
         CachedData.shared.clientLogoImage   = clientLogoImage
         CachedData.shared.showIdReviewPage      = showIdReviewPage
         CachedData.shared.customErrorMessages   = customErrorMessages
+        DatadogService.shared.applyTenancyAttribute(tenancyName: tenancyName)
 
         let validationVC = ValidationMainViewController.instance(withLivenessOnly: withLivenessOnly)
         validationVC.delegate = context.coordinator

@@ -46,11 +46,17 @@ class NationalIdFrontViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        DatadogService.shared.rumStartView(key: "national_id_front", name: "Front ID Screen")
+        DatadogService.shared.info("Front ID screen displayed")
         setupCamera()
 //        setupCaptureButton()
     }
     
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        DatadogService.shared.rumStopView(key: "national_id_front")
+    }
+
     override func willMove(toParent parent: UIViewController?) {
         super.willMove(toParent: parent)
         if parent == nil {

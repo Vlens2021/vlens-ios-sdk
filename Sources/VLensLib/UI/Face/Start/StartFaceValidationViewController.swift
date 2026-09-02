@@ -32,6 +32,8 @@ class StartFaceValidationViewController: UIViewController {
 
     public override func viewDidLoad() {
         super.viewDidLoad()
+        DatadogService.shared.rumStartView(key: "start_face_validation", name: "Start Face Validation Screen")
+        DatadogService.shared.info("Start Face Validation screen displayed")
         let colors = CachedData.shared.colors.current(for: traitCollection)
         view.backgroundColor = colors.backgroundColor
         titleLabel.textColor = colors.primaryColor
@@ -66,7 +68,14 @@ class StartFaceValidationViewController: UIViewController {
         ])
     }
 
+    public override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        DatadogService.shared.rumStopView(key: "start_face_validation")
+    }
+
     @IBAction func nextButtonAction(_ sender: Any) {
+        DatadogService.shared.info("Start Face Validation tapped")
+        DatadogService.shared.rumAddAction("start_face_validation_tap")
         Task {
             await delegate?.didFinishValidationStepNumber(stepIndex)
         }

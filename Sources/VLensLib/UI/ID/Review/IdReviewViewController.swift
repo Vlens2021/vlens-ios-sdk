@@ -162,9 +162,17 @@ class IdReviewViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        DatadogService.shared.rumStartView(key: "id_review", name: "ID Review Screen")
+        DatadogService.shared.info("ID review screen displayed")
+        DatadogService.shared.rumAddAction("id_review_displayed")
         setupUI()
         setupColors()
         populateData()
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        DatadogService.shared.rumStopView(key: "id_review")
     }
     
     private func setupUI() {
@@ -328,12 +336,16 @@ class IdReviewViewController: UIViewController {
     }
     
     @objc private func retakeButtonTapped() {
+        DatadogService.shared.info("User retook ID from review")
+        DatadogService.shared.rumAddAction("retake_id_from_review")
         Task {
             await delegate?.didBackToPreviousStep()
         }
     }
     
     @objc private func continueButtonTapped() {
+        DatadogService.shared.info("User confirmed ID review")
+        DatadogService.shared.rumAddAction("confirm_id_review")
         Task {
             await delegate?.didFinishValidationStepNumber(viewModel.getStepIndex())
         }

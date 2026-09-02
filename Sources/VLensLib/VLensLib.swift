@@ -14,6 +14,7 @@ public protocol VLensDelegate: AnyObject {
 public class VLensManager {
     
     public init(transactionId: String, apiKey: String, secretKey: String, tenancyName: String, language: String = "en", noOfRetries: Int = 5, allowAutoCapture: Bool = true, colors: VLensColors = .default, enableSounds: Bool = true, clientLogoImage: UIImage? = nil, showIdReviewPage: Bool = true, customErrorMessages: [ApiError] = []) {
+        DatadogService.shared.initialize()
         CachedData.shared.transactionId         = transactionId
         CachedData.shared.apiKey                = apiKey
         CachedData.shared.secretKey             = secretKey
@@ -26,6 +27,7 @@ public class VLensManager {
         CachedData.shared.clientLogoImage       = clientLogoImage
         CachedData.shared.showIdReviewPage      = showIdReviewPage
         CachedData.shared.customErrorMessages   = customErrorMessages
+        DatadogService.shared.applyTenancyAttribute(tenancyName: tenancyName)
     }
     
     public weak var delegate: VLensDelegate? = nil

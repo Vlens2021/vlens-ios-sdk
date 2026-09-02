@@ -14,36 +14,48 @@ class NationalIdBackViewModel {
     
     @MainActor
     func postData(imageBase64: String) async throws {
-        let accessToken = CachedData.shared.accessToken
-        var url = "\(CachedData.shared.apiBaseUrl)/api/DigitalIdentity/verify/id/back"
-        if accessToken.isEmpty {
-            url = "\(CachedData.shared.apiBaseUrl)/v1/ocr/id/back"
+        DatadogService.shared.rumStartFeatureOperation("verify_id_back")
+        do {
+            let accessToken = CachedData.shared.accessToken
+            var url = "\(CachedData.shared.apiBaseUrl)/api/DigitalIdentity/verify/id/back"
+            if accessToken.isEmpty {
+                url = "\(CachedData.shared.apiBaseUrl)/v1/ocr/id/back"
+            }
+
+            let headers = [
+                "Content-Type"  : "application/json",
+                "Accept"        : "*/*",
+                "Accept_Language": "en",
+                "ApiKey"        : CachedData.shared.apiKey,
+                "TenancyName"   : CachedData.shared.tenancyName,
+                "X-Request-Id"  : UUID().uuidString,
+                "Authorization" : "Bearer \(CachedData.shared.accessToken)"
+            ]
+
+            let request = VerifyIdBackPost.Request(transactionID: CachedData.shared.transactionId.lowercased(), image: imageBase64, getExtractedData: true)
+            let httpHeaders = HTTPHeaders(headers)
+            let response = try await AF.request(
+                url,
+                method: .post,
+                parameters: request,
+                encoder: JSONParameterEncoder.default,
+                headers: httpHeaders
+            )
+            .serializingDecodable(VerifyIdBackPost.Data.self)
+            .value
+
+            CachedData.shared.verifyBackResponse = response
+            checkIfErrorExists()
+
+            if errorMessage != nil {
+                DatadogService.shared.rumFailFeatureOperation("verify_id_back", reason: errorMessage ?? "")
+            } else {
+                DatadogService.shared.rumSucceedFeatureOperation("verify_id_back")
+            }
+        } catch {
+            DatadogService.shared.rumFailFeatureOperation("verify_id_back", reason: error.localizedDescription)
+            throw error
         }
-        
-        let headers = [
-            "Content-Type"                  : "application/json",
-            "Accept"                        : "*/*",
-            "Accept_Language"               : "en",
-            "ApiKey"                        : CachedData.shared.apiKey,
-            "TenancyName"                   : CachedData.shared.tenancyName,
-            "X-Request-Id"                  : UUID().uuidString,
-            "Authorization"                 : "Bearer \(CachedData.shared.accessToken)"
-        ]
-        
-        let request = VerifyIdBackPost.Request(transactionID: CachedData.shared.transactionId.lowercased(), image: imageBase64, getExtractedData: true)
-        let httpHeaders = HTTPHeaders(headers)
-        let response = try await AF.request(
-            url,
-            method: .post,
-            parameters: request,
-            encoder: JSONParameterEncoder.default,
-            headers: httpHeaders
-        )
-        .serializingDecodable(VerifyIdBackPost.Data.self)
-        .value
-        
-        CachedData.shared.verifyBackResponse = response
-        checkIfErrorExists()
     }
     
     @MainActor
@@ -54,20 +66,14 @@ class NationalIdBackViewModel {
             return
         }
         if response.errorCode != nil || response.errorMessage != nil {
-            self.errorMessage = resolveApiError(
-                code: response.errorCode,
-                fallback: response.errorMessage ?? "error".localized
-            )
+            self.errorMessage = response.errorMessage ?? "error".localized
             return
         }
 
         let validationErrors = response.services?.validations?.validationErrors ?? []
         if let firstError = validationErrors.first?.errors?.first,
            firstError.code != nil || firstError.message != nil {
-            self.errorMessage = resolveApiError(
-                code: firstError.code,
-                fallback: firstError.message ?? "error".localized
-            )
+            self.errorMessage = firstError.message ?? "error".localized
             return
         } else if !validationErrors.isEmpty {
             self.errorMessage = "error".localized

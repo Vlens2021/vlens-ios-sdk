@@ -243,13 +243,17 @@ class ValidationMainViewController: UIViewController {
     }
 
     @IBAction func retryButtonAction(_ sender: Any) {
+        DatadogService.shared.info("User retried face scanning")
+        DatadogService.shared.rumAddAction("retry_face_scanning")
         Task {
             CachedData.shared.noOfRetries = max(CachedData.shared.noOfRetries - 1, 0)
             didRetry(stepNumber: viewModel.faceStepIndex)
         }
     }
-    
+
     @IBAction func closeButtonAction(_ sender: Any) {
+        DatadogService.shared.info("User closed face error screen")
+        DatadogService.shared.rumAddAction("close_face_error_screen")
         Task {
             didCancel()
         }

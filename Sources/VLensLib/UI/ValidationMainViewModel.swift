@@ -111,66 +111,75 @@ class ValidationMainViewModel {
     
     @MainActor
     func postData() async throws {
-        let face1 = face1ViewModel?.face ?? ""
-        let face2 = face2ViewModel?.face ?? ""
-        let face3 = face3ViewModel?.face ?? ""
+        DatadogService.shared.rumStartFeatureOperation("verify_faces")
+        do {
+            let face1 = face1ViewModel?.face ?? ""
+            let face2 = face2ViewModel?.face ?? ""
+            let face3 = face3ViewModel?.face ?? ""
 
-        let compressedFace1 = Utils.compressBase64Image(face1, maxDimension: 1080, quality: 0.5) ?? ""
-        let compressedFace2 = Utils.compressBase64Image(face2, maxDimension: 1080, quality: 0.5) ?? ""
-        let compressedFace3 = Utils.compressBase64Image(face3, maxDimension: 1080, quality: 0.5) ?? ""
+            let compressedFace1 = Utils.compressBase64Image(face1, maxDimension: 1080, quality: 0.5) ?? ""
+            let compressedFace2 = Utils.compressBase64Image(face2, maxDimension: 1080, quality: 0.5) ?? ""
+            let compressedFace3 = Utils.compressBase64Image(face3, maxDimension: 1080, quality: 0.5) ?? ""
 
-        let request = VerifyLivenessMultiPost.Request(transactionID: CachedData.shared.transactionId.lowercased(), face1: compressedFace1, face2: compressedFace2, face3: compressedFace3)
+            let request = VerifyLivenessMultiPost.Request(transactionID: CachedData.shared.transactionId.lowercased(), face1: compressedFace1, face2: compressedFace2, face3: compressedFace3)
 
-        let accessToken = CachedData.shared.accessToken
-        var url = "\(CachedData.shared.apiBaseUrl)/api/DigitalIdentity/verify/liveness/multi"
-        if accessToken.isEmpty {
-            url = "\(CachedData.shared.apiBaseUrl)/v1/ocr/liveness/multi"
-        }
+            let accessToken = CachedData.shared.accessToken
+            var url = "\(CachedData.shared.apiBaseUrl)/api/DigitalIdentity/verify/liveness/multi"
+            if accessToken.isEmpty {
+                url = "\(CachedData.shared.apiBaseUrl)/v1/ocr/liveness/multi"
+            }
 
-        let headers = [
-            "Content-Type"                  : "application/json",
-            "Accept"                        : "*/*",
-            "Accept_Language"               : "en",
-            "ApiKey"                        : CachedData.shared.apiKey,
-            "TenancyName"                   : CachedData.shared.tenancyName,
-            "X-Request-Id"                  : UUID().uuidString,
-            "Authorization"                 : "Bearer \(CachedData.shared.accessToken)"
-        ]
+            let headers = [
+                "Content-Type"  : "application/json",
+                "Accept"        : "*/*",
+                "Accept_Language": "en",
+                "ApiKey"        : CachedData.shared.apiKey,
+                "TenancyName"   : CachedData.shared.tenancyName,
+                "X-Request-Id"  : UUID().uuidString,
+                "Authorization" : "Bearer \(CachedData.shared.accessToken)"
+            ]
 
-        let httpHeaders = HTTPHeaders(headers)
-        let response = try await AF.request(
-            url,
-            method: .post,
-            parameters: request,
-            encoder: JSONParameterEncoder.default,
-            headers: httpHeaders
-        )
-        .serializingDecodable(VerifyLivenessMultiPost.Response.self)
-        .value
-
-        CachedData.shared.livenessResponse = response
-        isDigitalIdentityVerified = response.data?.isDigitalIdentityVerified ?? false
-
-        if response.errorCode != nil || response.errorMessage != nil {
-            self.validationErrorMessage = resolveApiError(
-                code: response.errorCode,
-                fallback: response.errorMessage ?? "error".localized
+            let httpHeaders = HTTPHeaders(headers)
+            let response = try await AF.request(
+                url,
+                method: .post,
+                parameters: request,
+                encoder: JSONParameterEncoder.default,
+                headers: httpHeaders
             )
-        }
+            .serializingDecodable(VerifyLivenessMultiPost.Response.self)
+            .value
 
-        let validationErrors = response.services?.validations?.validationErrors ?? []
-        if let firstError = validationErrors.first?.errors?.first,
-           firstError.code != nil || firstError.message != nil {
-            self.validationErrorMessage = resolveApiError(
-                code: firstError.code,
-                fallback: firstError.message ?? "error".localized
-            )
-        } else if !validationErrors.isEmpty {
-            self.validationErrorMessage = "error".localized
-        }
+            CachedData.shared.livenessResponse = response
+            isDigitalIdentityVerified = response.data?.isDigitalIdentityVerified ?? false
 
-        if !isDigitalIdentityVerified && validationErrorMessage == nil {
-            self.validationErrorMessage = "div_failed".localized
+            if response.errorCode != nil || response.errorMessage != nil {
+                self.validationErrorMessage = response.errorMessage ?? "error".localized
+            }
+
+            let validationErrors = response.services?.validations?.validationErrors ?? []
+            if let firstError = validationErrors.first?.errors?.first,
+               firstError.code != nil || firstError.message != nil {
+                self.validationErrorMessage = firstError.message ?? "error".localized
+            } else if !validationErrors.isEmpty {
+                self.validationErrorMessage = "error".localized
+            }
+
+            if !isDigitalIdentityVerified && validationErrorMessage == nil {
+                self.validationErrorMessage = "div_failed".localized
+            }
+
+            if isDigitalIdentityVerified {
+                DatadogService.shared.info("Faces verified successfully")
+                DatadogService.shared.rumSucceedFeatureOperation("verify_faces")
+            } else {
+                let reason = validationErrorMessage ?? "div_failed"
+                DatadogService.shared.warn("Face verification process not completed", attributes: ["reason": reason])
+                DatadogService.shared.rumFailFeatureOperation("verify_faces", reason: reason)
+            }
+        } catch {
+            DatadogService.shared.rumFailFeatureOperation("verify_faces", reason: error.localizedDescription)
+            throw error
         }
     }
     

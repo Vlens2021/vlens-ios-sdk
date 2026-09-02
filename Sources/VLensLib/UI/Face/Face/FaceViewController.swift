@@ -53,7 +53,8 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        DatadogService.shared.rumStartView(key: "face_validation", name: "Face Validation Screen")
+        DatadogService.shared.info("Face validation screen displayed")
         if ARFaceTrackingConfiguration.isSupported {
             // TrueDepth available - use ARKit face tracking
             setupARKitSession()
@@ -142,6 +143,7 @@ class FaceViewController: UIViewController, ARSCNViewDelegate {
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        DatadogService.shared.rumStopView(key: "face_validation")
         gestureDetected = true
         isProcessing = true
         readyTimer?.invalidate()
