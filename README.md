@@ -14,12 +14,36 @@ Requirements:
 - Swift 5.5+
 - Xcode 13+
 
-Add via Swift Package Manager:
-1. In Xcode, open File > Add Package Dependencies.
-2. Use this URL: https://github.com/Vlens2021/vlens-ios-sdk
-3. Select version 1.4.4 (or latest).
+### Device Compatibility
 
-Add camera permission in Info.plist:
+The VLens SDK uses ARKit face tracking for liveness detection, which requires a **TrueDepth camera**.
+
+| TrueDepth Camera | Devices |
+|------------------|--------|
+| ✅ Supported | iPhone X and later (excluding SE models) |
+| ❌ Not Supported | iPhone 8, iPhone 7, iPhone SE (all generations) |
+
+**Behavior based on `allowNonTrueDepthFallback`:**
+
+| `allowNonTrueDepthFallback` | TrueDepth Available | Behavior |
+|-----------------------------|---------------------|----------|
+| `false` (default) | ✅ Yes | ARKit face tracking (full liveness) |
+| `false` (default) | ❌ No | SDK closes with `DEVICE_NOT_SUPPORTED` error |
+| `true` | ✅ Yes | ARKit face tracking (full liveness) |
+| `true` | ❌ No | Fallback to auto-capture every 2 seconds |
+
+### Swift Package Manager
+
+1. In Xcode, go to **File → Add Package Dependencies...**
+2. Enter the repository URL:
+   ```
+   https://github.com/Vlens2021/vlens-ios-sdk
+   ```
+3. Select version **1.5.1** (or the latest release) and click **Add Package**.
+
+### Info.plist
+
+Add camera permission to your `Info.plist`:
 
 ```xml
 <key>NSCameraUsageDescription</key>
@@ -35,16 +59,22 @@ Required inputs:
 - tenancyName
 - accessToken
 
-Common optional inputs:
-- language (en or ar)
-- withLivenessOnly
-- allowAutoCapture
-- allowNonTrueDepthFallback
-- showIdReviewPage
-- enableSounds
-- showCloseButton
-- clientLogoImage
-- colors
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `transactionId` | `String` | ✅ | — | Unique identifier for the transaction |
+| `apiKey` | `String` | ✅ | — | Your VLens API key |
+| `secretKey` | `String` | ✅ | — | Secret key (pass `""` if using access-token auth) |
+| `tenancyName` | `String` | ✅ | — | Your tenancy name |
+| `accessToken` | `String` | ✅ | — | Bearer token from the Login API |
+| `language` | `String` | ❌ | `"en"` | UI language — `"en"` or `"ar"` |
+| `withLivenessOnly` | `Bool` | ❌ | `false` | Skip ID capture, run liveness only |
+| `noOfRetries` | `Int` | ❌ | `5` | Number of retry attempts |
+| `allowAutoCapture` | `Bool` | ❌ | `true` | Enable automatic document capture |
+| `allowNonTrueDepthFallback` | `Bool` | ❌ | `false` | Allow SDK on devices without TrueDepth camera |
+| `showIdReviewPage` | `Bool` | ❌ | `true` | Show ID review page after capture |
+| `enableSounds` | `Bool` | ❌ | `true` | Enable/disable SDK sounds |
+| `clientLogoImage` | `UIImage?` | ❌ | `nil` | Custom client logo shown in the SDK |
+| `colors` | `VLensColors` | ❌ | `.default` | UI color configuration for branding |
 
 ## Color Customization
 
@@ -143,10 +173,9 @@ All color strings accept:
 
 ## Latest Release
 
-Tag 1.4.4 includes:
-- Decorative background circle (gif_background) now shown behind the ID and face icons on all start and loading screens, tinted with the configured `accent` color using `srcATop` blend mode
-- All title labels now respect the `primary` color configuration instead of hardcoded XIB colors
-- Full color customization applied consistently across: Start National ID, Start Face Validation, Scanning your ID (loading), and Verifying your identity (loading) screens
+Tag 1.5.1 includes:
+- Datadog RUM and Logs integration for session tracking, screen views, and feature-level success/failure reporting
+- Backend error messages are now shown as-is to the user instead of being mapped to SDK-defined strings — applies to liveness and ID back responses
 
 ## Support
 
