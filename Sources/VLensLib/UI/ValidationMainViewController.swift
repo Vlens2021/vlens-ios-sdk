@@ -332,7 +332,7 @@ extension ValidationMainViewController: ValidationMainViewControllerDelegate {
     }
     
     func didCancel() {
-        closeSdkWithResult(errorMessage: "USER_TAPPED_CANCEL")
+        closeSdkWithResult(errorMessage: viewModel.validationErrorMessage)
     }
     
     func didFailWithError(_ error: String) {
