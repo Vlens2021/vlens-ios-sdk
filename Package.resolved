@@ -20,12 +20,30 @@
         }
       },
       {
+        "package": "NFCPassportReader",
+        "repositoryURL": "https://github.com/AndyQ/NFCPassportReader.git",
+        "state": {
+          "branch": null,
+          "revision": "deec44982fa9bf2704a5f2138eb01dab7dcf9299",
+          "version": "2.3.0"
+        }
+      },
+      {
         "package": "opentelemetry-swift",
         "repositoryURL": "https://github.com/DataDog/opentelemetry-swift-packages.git",
         "state": {
           "branch": null,
           "revision": "4a7295600d4ebb9525a23c11586c5fdb74ae8b7e",
           "version": "1.13.1"
+        }
+      },
+      {
+        "package": "OpenSSL",
+        "repositoryURL": "https://github.com/krzyzanowskim/OpenSSL-Package.git",
+        "state": {
+          "branch": null,
+          "revision": "71dbe0b4514cdaad95961470db72e8231f5943a6",
+          "version": "3.3.3001"
         }
       },
       {

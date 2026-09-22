@@ -4,6 +4,7 @@ VLens iOS SDK enables digital identity verification in iOS apps:
 - National ID capture (front and back)
 - Face liveness checks
 - Face matching
+- Passport NFC verification
 
 Supports both SwiftUI and UIKit.
 
@@ -39,7 +40,7 @@ The VLens SDK uses ARKit face tracking for liveness detection, which requires a 
    ```
    https://github.com/Vlens2021/vlens-ios-sdk
    ```
-3. Select version **1.5.1** (or the latest release) and click **Add Package**.
+3. Select version **1.6.0** (or the latest release) and click **Add Package**.
 
 ### Info.plist
 
@@ -75,6 +76,135 @@ Required inputs:
 | `enableSounds` | `Bool` | ❌ | `true` | Enable/disable SDK sounds |
 | `clientLogoImage` | `UIImage?` | ❌ | `nil` | Custom client logo shown in the SDK |
 | `colors` | `VLensColors` | ❌ | `.default` | UI color configuration for branding |
+
+## Passport / NFC Verification
+
+### Overview
+
+The passport flow captures MRZ data via camera OCR, lets the user review the extracted fields, then reads the NFC chip and verifies it with the backend. The full flow is:
+
+**Start → Camera OCR → Review → NFC Chip Read → Backend Verify**
+
+If MRZ data is already known (e.g. emulator / test environment), call `setPassportData(...)` before `present()` to skip directly to the NFC scan step.
+
+### Additional Info.plist Entries
+
+```xml
+<key>NFCReaderUsageDescription</key>
+<string>NFC is required to read your passport chip</string>
+
+<key>com.apple.developer.nfc.readersession.iso7816.select-identifiers</key>
+<array>
+    <string>A0000002471001</string>
+</array>
+```
+
+### Required Entitlement
+
+Enable **Near Field Communication Tag Reading** in your target's **Signing & Capabilities** tab, or add it manually to your `.entitlements` file:
+
+```xml
+<key>com.apple.developer.nfc.readersession.formats</key>
+<array>
+    <string>TAG</string>
+</array>
+```
+
+### UIKit Integration
+
+```swift
+import VLensLib
+
+class ViewController: UIViewController, VLensDelegate {
+
+    func startPassportVerification() {
+        let manager = VLensManager(
+            transactionId: "your-transaction-id",
+            apiKey: "your-api-key",
+            secretKey: "",
+            tenancyName: "your-tenancy"
+        )
+        manager.setAccessToken("your-access-token")
+        manager.delegate = self
+        manager.present(on: self, withPassport: true)
+    }
+
+    func didValidateSuccessfully(transactionId: String, userData: VerifyIdBackPost.DataClass?) {
+        print("Passport verified: \(transactionId)")
+        // userData is nil for passport — query your backend with transactionId
+    }
+
+    func didFailToValidate(transactionId: String, error: String) {
+        print("Failed: \(error)")
+    }
+}
+```
+
+### UIKit — Pre-fill MRZ (Emulator / Test)
+
+Call `setPassportData` before `present` to skip camera OCR and go straight to NFC:
+
+```swift
+manager.setPassportData(
+    documentNumber: "A30026663",  // raw document number from MRZ
+    dateOfBirth: "940928",        // YYMMDD
+    expiryDate: "290305"          // YYMMDD
+)
+manager.present(on: self, withPassport: true)
+```
+
+### SwiftUI Integration
+
+```swift
+import SwiftUI
+import VLensLib
+
+struct ContentView: View {
+    @State private var showPassport = false
+
+    var body: some View {
+        Button("Verify Passport") { showPassport = true }
+            .vlensVerification(
+                isPresented: $showPassport,
+                transactionId: "your-transaction-id",
+                apiKey: "your-api-key",
+                secretKey: "",
+                tenancyName: "your-tenancy",
+                accessToken: "your-access-token",
+                withPassport: true,
+                onSuccess: { txnId, _ in print("Verified: \(txnId)") },
+                onFailure: { txnId, error in print("Failed: \(error)") }
+            )
+    }
+}
+```
+
+### SwiftUI — Pre-fill MRZ (Emulator / Test)
+
+```swift
+.vlensVerification(
+    isPresented: $showPassport,
+    transactionId: "your-transaction-id",
+    apiKey: "your-api-key",
+    secretKey: "",
+    tenancyName: "your-tenancy",
+    accessToken: "your-access-token",
+    withPassport: true,
+    passportDocumentNumber: "A30026663",
+    passportDateOfBirth: "940928",
+    passportExpiryDate: "290305",
+    onSuccess: { txnId, _ in print("Verified: \(txnId)") },
+    onFailure: { txnId, error in print("Failed: \(error)") }
+)
+```
+
+### Delegate Callbacks
+
+`didValidateSuccessfully` fires when the NFC chip is read and the backend verification passes. `userData` is `nil` for passport flows — use the `transactionId` to look up results server-side.
+
+`didFailToValidate` fires with the backend's raw error message on any failure (NFC read error, network error, backend rejection, or user cancellation).
+
+---
 
 ## Color Customization
 
@@ -173,9 +303,13 @@ All color strings accept:
 
 ## Latest Release
 
-Tag 1.5.1 includes:
+Tag 1.6.0 includes:
+- Passport NFC verification flow: camera OCR → review → NFC chip read → backend verify
+- `setPassportData(documentNumber:dateOfBirth:expiryDate:)` for emulator / test MRZ pre-fill (skips camera OCR straight to NFC scan)
+- `withPassport: true` on `present()` and `.vlensVerification()` SwiftUI modifier
 - Datadog RUM and Logs integration for session tracking, screen views, and feature-level success/failure reporting
-- Backend error messages are now shown as-is to the user instead of being mapped to SDK-defined strings — applies to liveness and ID back responses
+- Backend error messages shown as-is instead of being mapped to SDK-defined strings (liveness and ID back)
+- Cancel button on the error result screen now passes the actual backend error to `didFailToValidate`
 
 ## Support
 

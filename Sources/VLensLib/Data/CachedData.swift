@@ -44,10 +44,26 @@ class CachedData {
     var transactionId: String = "" {
         didSet { transactionId = transactionId.lowercased() }
     }
-    
+
+    // MARK: - Passport / NFC Mode
+    var isPassport: Bool = false
+    /// Document number in raw form (e.g. "A30026663")
+    var passportDocumentNumber: String = ""
+    /// Date of birth in YYMMDD format (e.g. "940928")
+    var passportDateOfBirth: String = ""
+    /// Expiry date in YYMMDD format (e.g. "290305")
+    var passportExpiryDate: String = ""
+    /// Full OCR response stored after PassportOcrViewController succeeds,
+    /// used by PassportReviewViewController to display extracted fields.
+    var passportOcrData: VerifyPassportOcrPost.DataClass? = nil
+
     // MARK: - APIs Response
     var didGetVerifyFrontResponseSuccessfully: Bool? = nil
     var verifyFrontResponse: VerifyIdFrontPost.Data? = nil
     var verifyBackResponse: VerifyIdBackPost.Data? = nil
     var livenessResponse: VerifyLivenessMultiPost.Response? = nil
+
+    // MARK: - NFC Results
+    var nfcResult: NfcPassportResult? = nil
+    var nfcVerifyResponse: NfcVerifyPost.DataClass? = nil
 }

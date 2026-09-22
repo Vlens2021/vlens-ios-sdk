@@ -2,11 +2,15 @@ import Foundation
 
 struct LoginService {
 
-    static let apiKey = "8iMtUwpr6TrvcXZtrJNC0XDiocB9KJ1T0QXkdWsS1o"
     static let tenancyName = "Default"
 
-    static func login() async throws -> String {
-        let url = URL(string: "https://api.vlenseg.com/api/DigitalIdentity/Login")!
+    static let envs: [(name: String, baseUrl: String, apiKey: String)] = [
+        (name: "Staging",    baseUrl: "https://api.vlens.co",    apiKey: "546RfMoxpE2cUJK1UioM4ajjwJ3s4DMXjLxy2tsOyM"),
+        (name: "Production", baseUrl: "https://api.vlenseg.com", apiKey: "8iMtUwpr6TrvcXZtrJNC0XDiocB9KJ1T0QXkdWsS1o"),
+    ]
+
+    static func login(baseUrl: String, apiKey: String) async throws -> String {
+        let url = URL(string: "\(baseUrl)/api/DigitalIdentity/Login")!
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -17,14 +21,11 @@ struct LoginService {
         request.timeoutInterval = 120
 
         let body: [String: Any] = [
-            "geoLocation": [
-                "latitude": "30",
-                "longitude": 30
-            ],
+            "geoLocation": ["latitude": "30", "longitude": 30],
             "imei": "test",
             "phoneNumber": "+201118997269",
             "password": "Moaz101@",
-            "smsProviders": 0
+            "smsProviders": 0,
         ]
 
         request.httpBody = try JSONSerialization.data(withJSONObject: body)

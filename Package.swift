@@ -18,6 +18,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/Alamofire/Alamofire.git", from: "5.7.0"),
         .package(url: "https://github.com/DataDog/dd-sdk-ios", from: "2.14.0"),
+        .package(url: "https://github.com/AndyQ/NFCPassportReader.git", from: "2.3.0"),
     ],
     targets: [
         .target(
@@ -27,6 +28,7 @@ let package = Package(
                 .product(name: "DatadogCore", package: "dd-sdk-ios"),
                 .product(name: "DatadogLogs", package: "dd-sdk-ios"),
                 .product(name: "DatadogRUM",  package: "dd-sdk-ios"),
+                "NFCPassportReader",
             ],
             path: "Sources",
             resources: [

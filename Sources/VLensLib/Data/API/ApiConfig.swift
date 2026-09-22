@@ -20,5 +20,6 @@ struct ApiConfig {
     let VERIFY_ID_FRONT_POST            = "/api/DigitalIdentity/verify/id/front"
     let VERIFY_ID_BACK_POST             = "/api/DigitalIdentity/verify/id/back"
     let VERIFY_LIVENESS_MULTI_POST      = "/api/DigitalIdentity/verify/liveness/multi"
+    let VERIFY_PASSPORT_NFC_POST        = "/api/DigitalIdentity/verify/passport/nfc"
 }
     

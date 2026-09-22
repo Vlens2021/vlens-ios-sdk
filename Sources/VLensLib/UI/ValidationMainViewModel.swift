@@ -9,8 +9,9 @@ import Foundation
 internal import Alamofire
 
 class ValidationMainViewModel {
-    
+
     var withLivenessOnly = false
+    var withPassport     = false
     
     var isDigitalIdentityVerified = false
     var validationErrorMessage: String? = nil
@@ -25,6 +26,26 @@ class ValidationMainViewModel {
     
     @MainActor
     func initData() {
+        // Passport-only flow.
+        // Full flow:  Start → OCR camera → Review → NFC scan
+        // Emulator:   (pre-filled MRZ) NFC scan only — skips Start, OCR, Review
+        if withPassport {
+            if !CachedData.shared.passportDocumentNumber.isEmpty {
+                // MRZ pre-filled (emulator / setPassportData) — go straight to NFC.
+                stepsViewModels = [NfcScanViewModel(stepIndex: 0)]
+                faceStepIndex = 0
+            } else {
+                stepsViewModels = [
+                    StartPassportViewModel(stepIndex: 0),   // Intro + tips
+                    PassportOcrViewModel(stepIndex: 1),     // Camera capture
+                    PassportReviewViewModel(stepIndex: 2),  // Confirm extracted data
+                    NfcScanViewModel(stepIndex: 3),         // NFC chip read + verify
+                ]
+                faceStepIndex = 3
+            }
+            return
+        }
+
         // generate three random numbers from 1 to 5
         let noOfFlows = FaceValidationTypes.validFlows.count
         let randomFlowIndex = Int.random(in: 0..<noOfFlows)

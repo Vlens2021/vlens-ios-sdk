@@ -22,6 +22,7 @@
 		675270EBF001722D6822651E /* LoginService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginService.swift; sourceTree = "<group>"; };
 		AB1FD042E091E333B996A36A /* vlens_ios */ = {isa = PBXFileReference; lastKnownFileType = folder; name = vlens_ios; path = ..; sourceTree = SOURCE_ROOT; };
 		AC32A7E1DFE28EEAE59C97F0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E1A2B3C4D5E6F7A8B9C0D1E2 /* VLensDemoApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = VLensDemoApp.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -93,6 +94,7 @@
 				6618E37835CFDD61A7719CB5 /* Resources */,
 				7DDD15856FA0BAFF83B1D86F /* Services */,
 				38345CF683EB851496A0BDA0 /* Views */,
+				E1A2B3C4D5E6F7A8B9C0D1E2 /* VLensDemoApp.entitlements */,
 			);
 			path = VLensDemoApp;
 			sourceTree = "<group>";
@@ -187,15 +189,19 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = VLensDemoApp/VLensDemoApp.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = NB65Q7T69B;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = VLensDemoApp/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = vlens.vlensIOSDemo;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
@@ -208,15 +214,19 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = VLensDemoApp/VLensDemoApp.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = NB65Q7T69B;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = VLensDemoApp/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = vlens.vlensIOSDemo;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
