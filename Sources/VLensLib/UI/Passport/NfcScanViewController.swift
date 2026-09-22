@@ -548,6 +548,7 @@ class NfcScanViewController: UIViewController {
             "Accept":        "*/*",
             "ApiKey":        CachedData.shared.apiKey,
             "TenancyName":   CachedData.shared.tenancyName,
+            "X-Request-Id":  UUID().uuidString,
             "Authorization": "Bearer \(CachedData.shared.accessToken)",
         ])
 
