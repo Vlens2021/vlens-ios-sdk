@@ -57,6 +57,12 @@ class CachedData {
     /// used by PassportReviewViewController to display extracted fields.
     var passportOcrData: VerifyPassportOcrPost.DataClass? = nil
 
+    // MARK: - Image Export
+    /// When true, captured front and back ID images are stored and delivered via didCaptureIdImages.
+    var exportImages: Bool = false
+    var capturedFrontImage: UIImage? = nil
+    var capturedBackImage: UIImage? = nil
+
     // MARK: - APIs Response
     var didGetVerifyFrontResponseSuccessfully: Bool? = nil
     var verifyFrontResponse: VerifyIdFrontPost.Data? = nil

@@ -194,6 +194,9 @@ class NationalIdBackViewController: UIViewController {
                     retryButton.isHidden = (CachedData.shared.noOfRetries == 0)
                     return
                 }
+                if CachedData.shared.exportImages {
+                    CachedData.shared.capturedBackImage = image
+                }
                 await delegate?.didFinishValidationStepNumber(2)
             } catch {
                 debugPrint(error)

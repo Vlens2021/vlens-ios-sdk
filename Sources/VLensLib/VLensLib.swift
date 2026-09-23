@@ -4,16 +4,29 @@
 import Foundation
 import UIKit
 
+/// Images captured during the ID scanning steps, delivered when `exportImages: true`.
+public struct VLensIdImages {
+    public let frontImage: UIImage?
+    public let backImage: UIImage?
+}
+
 public protocol VLensDelegate: AnyObject {
     func didValidateSuccessfully(transactionId: String, userData: VerifyIdBackPost.DataClass?)
     func didFailToValidate(transactionId: String, error: String)
+    /// Called on successful verification when `exportImages: true` was set.
+    /// Fires before `didValidateSuccessfully`. Not called for liveness-only or passport flows.
+    func didCaptureIdImages(transactionId: String, images: VLensIdImages)
+}
+
+public extension VLensDelegate {
+    func didCaptureIdImages(transactionId: String, images: VLensIdImages) {}
 }
 
 // MARK: - VLens Entry Point Class
 @MainActor
 public class VLensManager {
     
-    public init(transactionId: String, apiKey: String, secretKey: String, tenancyName: String, language: String = "en", noOfRetries: Int = 5, allowAutoCapture: Bool = true, colors: VLensColors = .default, enableSounds: Bool = true, clientLogoImage: UIImage? = nil, showIdReviewPage: Bool = true, customErrorMessages: [ApiError] = []) {
+    public init(transactionId: String, apiKey: String, secretKey: String, tenancyName: String, language: String = "en", noOfRetries: Int = 5, allowAutoCapture: Bool = true, colors: VLensColors = .default, enableSounds: Bool = true, clientLogoImage: UIImage? = nil, showIdReviewPage: Bool = true, customErrorMessages: [ApiError] = [], exportImages: Bool = false) {
         DatadogService.shared.initialize()
         CachedData.shared.transactionId         = transactionId
         CachedData.shared.apiKey                = apiKey
@@ -27,6 +40,7 @@ public class VLensManager {
         CachedData.shared.clientLogoImage       = clientLogoImage
         CachedData.shared.showIdReviewPage      = showIdReviewPage
         CachedData.shared.customErrorMessages   = customErrorMessages
+        CachedData.shared.exportImages          = exportImages
         DatadogService.shared.applyTenancyAttribute(tenancyName: tenancyName)
     }
     

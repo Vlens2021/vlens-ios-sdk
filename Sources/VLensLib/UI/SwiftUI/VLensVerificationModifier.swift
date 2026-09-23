@@ -36,9 +36,11 @@ struct VLensVerificationModifier: ViewModifier {
     let clientLogoImage: UIImage?
     let showIdReviewPage: Bool
     let customErrorMessages: [ApiError]
+    let exportImages: Bool
     let onSuccess: (String, VerifyIdBackPost.DataClass?) -> Void
     let onFailure: (String, String) -> Void
     let onDismiss: (() -> Void)?
+    let onImagesCaptured: ((String, VLensIdImages) -> Void)?
 
     func body(content: Content) -> some View {
         content
@@ -65,6 +67,7 @@ struct VLensVerificationModifier: ViewModifier {
                     clientLogoImage: clientLogoImage,
                     showIdReviewPage: showIdReviewPage,
                     customErrorMessages: customErrorMessages,
+                    exportImages: exportImages,
                     onSuccess: { txnId, userData in
                         isPresented = false
                         onSuccess(txnId, userData)
@@ -76,7 +79,8 @@ struct VLensVerificationModifier: ViewModifier {
                     onDismiss: {
                         isPresented = false
                         onDismiss?()
-                    }
+                    },
+                    onImagesCaptured: onImagesCaptured
                 )
                 .ignoresSafeArea()
             }
@@ -172,9 +176,11 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
     public let clientLogoImage: UIImage?
     public let showIdReviewPage: Bool
     public let customErrorMessages: [ApiError]
+    public let exportImages: Bool
     let onSuccess: @MainActor @Sendable (String, VerifyIdBackPost.DataClass?) -> Void
     let onFailure: @MainActor @Sendable (String, String) -> Void
     let onDismiss: (@MainActor @Sendable () -> Void)?
+    let onImagesCaptured: (@MainActor @Sendable (String, VLensIdImages) -> Void)?
     
     /// Creates a VLensVerificationView for flexible presentation in SwiftUI.
     ///
@@ -219,9 +225,11 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
         clientLogoImage: UIImage? = nil,
         showIdReviewPage: Bool = true,
         customErrorMessages: [ApiError] = [],
+        exportImages: Bool = false,
         onSuccess: @escaping @MainActor @Sendable (String, VerifyIdBackPost.DataClass?) -> Void,
         onFailure: @escaping @MainActor @Sendable (String, String) -> Void,
-        onDismiss: (@MainActor @Sendable () -> Void)? = nil
+        onDismiss: (@MainActor @Sendable () -> Void)? = nil,
+        onImagesCaptured: (@escaping @MainActor @Sendable (String, VLensIdImages) -> Void)? = nil
     ) {
         self.transactionId = transactionId
         self.apiKey = apiKey
@@ -244,13 +252,15 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
         self.clientLogoImage = clientLogoImage
         self.showIdReviewPage = showIdReviewPage
         self.customErrorMessages = customErrorMessages
+        self.exportImages = exportImages
         self.onSuccess = onSuccess
         self.onFailure = onFailure
         self.onDismiss = onDismiss
+        self.onImagesCaptured = onImagesCaptured
     }
 
     public func makeCoordinator() -> Coordinator {
-        Coordinator(onSuccess: onSuccess, onFailure: onFailure, onDismiss: onDismiss)
+        Coordinator(onSuccess: onSuccess, onFailure: onFailure, onDismiss: onDismiss, onImagesCaptured: onImagesCaptured)
     }
 
     public func makeUIViewController(context: Context) -> VLensContainerViewController {
@@ -259,6 +269,8 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
         CachedData.shared.verifyFrontResponse   = nil
         CachedData.shared.verifyBackResponse    = nil
         CachedData.shared.livenessResponse      = nil
+        CachedData.shared.capturedFrontImage    = nil
+        CachedData.shared.capturedBackImage     = nil
 
         DatadogService.shared.initialize()
 
@@ -284,6 +296,7 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
             CachedData.shared.passportDateOfBirth    = passportDateOfBirth
             CachedData.shared.passportExpiryDate     = passportExpiryDate
         }
+        CachedData.shared.exportImages              = exportImages
         DatadogService.shared.applyTenancyAttribute(tenancyName: tenancyName)
 
         let validationVC = ValidationMainViewController.instance(withLivenessOnly: withLivenessOnly, withPassport: withPassport)
@@ -322,6 +335,7 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
             CachedData.shared.passportDateOfBirth    = passportDateOfBirth
             CachedData.shared.passportExpiryDate     = passportExpiryDate
         }
+        CachedData.shared.exportImages              = exportImages
     }
 
     // MARK: - Coordinator (VLensDelegate)
@@ -330,13 +344,16 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
         let onSuccess: @MainActor @Sendable (String, VerifyIdBackPost.DataClass?) -> Void
         let onFailure: @MainActor @Sendable (String, String) -> Void
         let onDismiss: (@MainActor @Sendable () -> Void)?
+        let onImagesCaptured: (@MainActor @Sendable (String, VLensIdImages) -> Void)?
 
         init(onSuccess: @escaping @MainActor @Sendable (String, VerifyIdBackPost.DataClass?) -> Void,
              onFailure: @escaping @MainActor @Sendable (String, String) -> Void,
-             onDismiss: (@MainActor @Sendable () -> Void)? = nil) {
+             onDismiss: (@MainActor @Sendable () -> Void)? = nil,
+             onImagesCaptured: (@MainActor @Sendable (String, VLensIdImages) -> Void)? = nil) {
             self.onSuccess = onSuccess
             self.onFailure = onFailure
             self.onDismiss = onDismiss
+            self.onImagesCaptured = onImagesCaptured
         }
 
         public nonisolated func didValidateSuccessfully(transactionId: String, userData: VerifyIdBackPost.DataClass?) {
@@ -352,7 +369,14 @@ public struct VLensVerificationView: UIViewControllerRepresentable {
                 callback(transactionId, error)
             }
         }
-        
+
+        public nonisolated func didCaptureIdImages(transactionId: String, images: VLensIdImages) {
+            guard let callback = onImagesCaptured else { return }
+            Task { @MainActor in
+                callback(transactionId, images)
+            }
+        }
+
         func handleDismiss() {
             guard let onDismiss = onDismiss else { return }
             Task { @MainActor in
@@ -557,9 +581,11 @@ public extension View {
         clientLogoImage: UIImage? = nil,
         showIdReviewPage: Bool = true,
         customErrorMessages: [ApiError] = [],
+        exportImages: Bool = false,
         onSuccess: @escaping (String, VerifyIdBackPost.DataClass?) -> Void,
         onFailure: @escaping (String, String) -> Void,
-        onDismiss: (() -> Void)? = nil
+        onDismiss: (() -> Void)? = nil,
+        onImagesCaptured: ((String, VLensIdImages) -> Void)? = nil
     ) -> some View {
         self.modifier(
             VLensVerificationModifier(
@@ -585,9 +611,11 @@ public extension View {
                 clientLogoImage: clientLogoImage,
                 showIdReviewPage: showIdReviewPage,
                 customErrorMessages: customErrorMessages,
+                exportImages: exportImages,
                 onSuccess: onSuccess,
                 onFailure: onFailure,
-                onDismiss: onDismiss
+                onDismiss: onDismiss,
+                onImagesCaptured: onImagesCaptured
             )
         )
     }

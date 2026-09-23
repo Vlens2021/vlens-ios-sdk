@@ -112,6 +112,10 @@ class NationalIdFrontViewController: UIViewController {
     }
     
     private func didCaptureImage(_ image: UIImage) {
+        if CachedData.shared.exportImages {
+            CachedData.shared.capturedFrontImage = image
+        }
+
         Task {
             guard let imageBase64String = image.jpegData(compressionQuality: 1)?.base64EncodedString() else { return }
             let compressedBase64 = Utils.compressBase64Image(imageBase64String) ?? imageBase64String
@@ -123,7 +127,7 @@ class NationalIdFrontViewController: UIViewController {
                 CachedData.shared.didGetVerifyFrontResponseSuccessfully = false
             }
         }
-        
+
         Task {
             await delegate?.didFinishValidationStepNumber(1)
         }

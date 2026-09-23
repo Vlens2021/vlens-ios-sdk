@@ -245,6 +245,13 @@ class ValidationMainViewController: UIViewController {
                 return
             }
             if viewModel.isDigitalIdentityVerified {
+                if CachedData.shared.exportImages {
+                    let images = VLensIdImages(
+                        frontImage: CachedData.shared.capturedFrontImage,
+                        backImage:  CachedData.shared.capturedBackImage
+                    )
+                    delegate?.didCaptureIdImages(transactionId: CachedData.shared.transactionId, images: images)
+                }
                 delegate?.didValidateSuccessfully(transactionId: CachedData.shared.transactionId, userData: CachedData.shared.verifyBackResponse?.data)
             } else {
                 delegate?.didFailToValidate(transactionId: CachedData.shared.transactionId, error: errorMessage ?? "div_failed".localized)
